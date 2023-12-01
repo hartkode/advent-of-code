@@ -6,18 +6,6 @@
 #include <vector>
 using namespace std;
 
-string
-replace_all(string str, const string search, const string with)
-{
-	for ( ;; ) {
-		auto it = str.find(search);
-		if ( it == string::npos )
-			break;
-		str.replace(it, search.length(), with);
-	}
-	return str;
-}
-
 int
 main()
 {
@@ -45,7 +33,7 @@ main()
 
 	fstream input{ "data/01a.txt" };
 
-	int sum = 0;
+	auto sum = 0;
 	for ( string line; input >> line; ) {
 		string sub;
 		vector<int> digits;
