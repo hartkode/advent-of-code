@@ -1,6 +1,6 @@
 include config.mk
 
-all: bin/01a bin/01b
+all: bin/day01
 
 bin/%: obj/%.o | bin
 	c++ $(LDFLAGS) $^ -o $@

@@ -6,8 +6,26 @@
 #include <vector>
 using namespace std;
 
-int
-main()
+void
+part1()
+{
+	string  digits{ "0123456789" };
+	fstream input{ "data/day01.txt" };
+
+	int sum = 0;
+	for ( string line; input >> line; ) {
+		auto first = find_first_of(begin(line), end(line), begin(digits), end(digits));
+		auto last  = find_first_of(rbegin(line), rend(line), begin(digits), end(digits));
+
+		auto value = (*first - '0') * 10 + (*last - '0');
+
+		sum += value;
+	}
+	cout << sum << endl;
+}
+
+void
+part2()
 {
 	map<string, int> map{
 		{ "0", 0 },
@@ -31,11 +49,11 @@ main()
 		{ "nine", 9 },
 	};
 
-	fstream input{ "data/01a.txt" };
+	fstream input{ "data/day01.txt" };
 
 	auto sum = 0;
 	for ( string line; input >> line; ) {
-		string sub;
+		string      sub;
 		vector<int> digits;
 
 		for ( auto ch: line ) {
@@ -49,9 +67,16 @@ main()
 		}
 
 		auto first = digits.front();
-		auto last = digits.back();
+		auto last  = digits.back();
 
 		sum += (first * 10) + last;
 	}
 	cout << sum << endl;
+}
+
+int
+main()
+{
+	part1();
+	part2();
 }
