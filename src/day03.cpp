@@ -26,39 +26,46 @@ is_digit(char chr)
 	return std::isdigit(static_cast<unsigned char>(chr)) != 0;
 }
 
+vector<tuple<size_t, size_t>>
+positions(size_t row, size_t col)
+{
+	return vector<tuple<size_t, size_t>> {
+		{ row - 1, col - 1 },
+		{ row - 0, col - 1 },
+		{ row + 1, col - 1 },
+
+		{ row - 1, col },
+		{ row + 1, col },
+
+		{ row - 1, col + 1 },
+		{ row - 0, col + 1 },
+		{ row + 1, col + 1 },
+	};
+}
+
 void
 part1() // NOLINT
 {
 	auto lines = read_file("data/day03.txt");
 
-	auto is_symbol = [&lines](int row, int col) -> bool {
+	auto is_symbol = [&lines](size_t row, size_t col) -> bool {
 		static const string symbols{ "*#+$%=-@&/" };
 
-		if ( row < 0 || col < 0 ) {
-			return false;
-		}
-		if ( size_t(row) >= lines.size() || size_t(col) >= lines[size_t(row)].size() ) {
+		if ( row >= lines.size() || col >= lines[row].size() ) {
 			return false;
 		}
 
-		auto symbol = lines[size_t(row)][size_t(col)];
+		auto symbol = lines[row][col];
 
 		return symbols.find(symbol) != string::npos;
 	};
 
-	auto bordering = [&is_symbol](int row, int col) -> bool {
+	auto bordering = [&is_symbol](size_t row, size_t col) -> bool {
 		bool result = false;
 
-		result |= is_symbol(row - 1, col - 1);
-		result |= is_symbol(row - 0, col - 1);
-		result |= is_symbol(row + 1, col - 1);
-
-		result |= is_symbol(row - 1, col);
-		result |= is_symbol(row + 1, col);
-
-		result |= is_symbol(row - 1, col + 1);
-		result |= is_symbol(row - 0, col + 1);
-		result |= is_symbol(row + 1, col + 1);
+		for (const auto& position: positions(row, col)) {
+			result |= is_symbol(get<0>(position), get<1>(position));
+		}
 
 		return result;
 	};
@@ -82,7 +89,7 @@ part1() // NOLINT
 				auto result = false;
 
 				for ( auto col = start; col != end; ++col ) {
-					result |= bordering(int(row), int(col));
+					result |= bordering(row, col);
 				}
 
 				if ( result ) {
@@ -97,7 +104,7 @@ part1() // NOLINT
 }
 
 void
-part2()
+part2() // NOLINT
 {
 	auto lines = read_file("data/day03.txt");
 
@@ -138,35 +145,16 @@ part2()
 
 		auto col = line.find('*');
 		while ( col != string::npos ) {
-			int value = 0;
 			vector<int> values;
+
 			auto lines_copy{ lines };
 
-			if ( find_integer(lines_copy, row - 1, col - 1, value) ) {
-				values.emplace_back(value);
-			}
-			if ( find_integer(lines_copy, row - 0, col - 1, value) ) {
-				values.emplace_back(value);
-			}
-			if ( find_integer(lines_copy, row + 1, col - 1, value) ) {
-				values.emplace_back(value);
-			}
+			for ( const auto& position: positions(row, col) ) {
+				auto value = 0;
 
-			if ( find_integer(lines_copy, row - 1, col, value) ) {
-				values.emplace_back(value);
-			}
-			if ( find_integer(lines_copy, row + 1, col, value) ) {
-				values.emplace_back(value);
-			}
-
-			if ( find_integer(lines_copy, row - 1, col + 1, value) ) {
-				values.emplace_back(value);
-			}
-			if ( find_integer(lines_copy, row - 0, col + 1, value) ) {
-				values.emplace_back(value);
-			}
-			if ( find_integer(lines_copy, row + 1, col + 1, value) ) {
-				values.emplace_back(value);
+				if ( find_integer(lines_copy, get<0>(position), get<1>(position), value) ) {
+					values.emplace_back(value);
+				}
 			}
 
 			if ( values.size() == 2 ) {
@@ -183,5 +171,6 @@ part2()
 int
 main()
 {
+	part1();
 	part2();
 }
