@@ -1,6 +1,8 @@
 include config.mk
 
-all: bin/day01 bin/day02
+all: bin/day01 \
+	 bin/day02 \
+	 bin/day03
 
 bin/%: src/%.cpp | bin
 	c++ $(CPPFLAGS) $^ -o $@
