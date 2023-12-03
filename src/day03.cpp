@@ -115,9 +115,7 @@ part2() // NOLINT
 
 		auto& line = lines[row];
 
-		auto digit = line[col];
-
-		if ( !is_digit(digit) ) {
+		if ( !is_digit(line[col]) ) {
 			return false;
 		}
 
