@@ -29,7 +29,7 @@ is_digit(char chr)
 vector<tuple<size_t, size_t>>
 positions(size_t row, size_t col)
 {
-	return vector<tuple<size_t, size_t>> {
+	return {
 		{ row - 1, col - 1 },
 		{ row - 0, col - 1 },
 		{ row + 1, col - 1 },
