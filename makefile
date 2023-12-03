@@ -2,16 +2,13 @@ include config.mk
 
 all: bin/day01 bin/day02
 
-bin/%: obj/%.o | bin
-	c++ $(LDFLAGS) $^ -o $@
-
-obj/%.o: src/%.cpp | obj
-	c++ $(CPPFLAGS) -c $< -o $@
+bin/%: src/%.cpp | bin
+	c++ $(CPPFLAGS) $^ -o $@
 
 clean:
-	rm -rf bin obj
+	rm -rf bin
 
-bin obj:
+bin:
 	mkdir $@
 
 .PHONY: all clean
