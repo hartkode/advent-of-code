@@ -6,13 +6,13 @@ all: bin/day01 \
 	 bin/day04 \
 	 bin/day05
 
+bin:
+	mkdir $@
+
 bin/%: src/%.cpp | bin
 	c++ $(CPPFLAGS) $^ -o $@
 
 clean:
 	rm -rf bin
-
-bin:
-	mkdir $@
 
 .PHONY: all clean
