@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <string>
@@ -98,7 +99,7 @@ part1()
 		range_mapping[parts[0]] = mapping;
 	}
 
-	vector<long> values{};
+	auto min_value = numeric_limits<long>::max();
 	for ( auto seed: seeds ) {
 		for ( string category{ "seed" }; !category.empty(); category = category_mapping[category] ) {
 			const auto& ranges = range_mapping[category];
@@ -110,15 +111,15 @@ part1()
 				}
 			}
 		}
-		values.emplace_back(seed);
+		min_value = min(min_value, seed);
 	}
-	cout << *min_element(values.begin(), values.end()) << endl;
+	cout << min_value << endl;
 }
 
 void
 part2()
 {
-	auto lines = read_file("data/day05.txt");
+	auto lines = read_file("data/day05-sample1.txt");
 
 	auto read_ints = [](const string& line) {
 		stringstream iss{ line };
@@ -155,10 +156,9 @@ part2()
 		range_mapping[parts[0]] = mapping;
 	}
 
-	vector<long> values{};
+	// brute force -- slow, but works
+	auto min_value = numeric_limits<long>::max();
 	for ( size_t idx = 0; idx != seeds.size(); idx += 2 ) {
-		cout << "." << endl;
-		vector<long> min_so_far{};
 		for ( auto start = seeds[idx]; start != seeds[idx] + seeds[idx+1]; ++start ) {
 			auto seed = start;
 
@@ -172,15 +172,15 @@ part2()
 					}
 				}
 			}
-			min_so_far.emplace_back(seed);
+			min_value = min(min_value, seed);
 		}
-		values.push_back(*min_element(min_so_far.begin(), min_so_far.end()));
 	}
-	cout << *min_element(values.begin(), values.end()) << endl;
+	cout << min_value << endl;
 }
 
 int
 main()
 {
+	part1();
 	part2();
 }
