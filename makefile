@@ -3,7 +3,8 @@ include config.mk
 all: bin/day01 \
 	 bin/day02 \
 	 bin/day03 \
-	 bin/day04
+	 bin/day04 \
+	 bin/day05
 
 bin/%: src/%.cpp | bin
 	c++ $(CPPFLAGS) $^ -o $@
