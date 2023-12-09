@@ -28,7 +28,7 @@ read_ints(const string& line)
 
 template<typename T>
 T
-solve_rec_part1(const vector<T>& values)
+solve_rec(const vector<T>& values)
 {
 	vector<T> differences;
 
@@ -37,7 +37,7 @@ solve_rec_part1(const vector<T>& values)
 	}
 	auto all_zeros = all_of(differences.begin(), differences.end(), [](T diff) { return diff == 0; });
 	if ( !all_zeros ) {
-		return solve_rec_part1(differences) + values.back();
+		return solve_rec(differences) + values.back();
 	}
 	else {
 		return values.back();
@@ -51,27 +51,9 @@ part1()
 
 	long sum = 0;
 	for ( const auto& line: lines ) {
-		sum += solve_rec_part1(read_ints(line));
+		sum += solve_rec(read_ints(line));
 	}
 	cout << sum << endl;
-}
-
-template<typename T>
-T
-solve_rec_part2(const vector<T>& values)
-{
-	vector<T> differences;
-
-	for ( size_t idx = 1; idx < values.size(); ++idx ) {
-		differences.emplace_back(values[idx] - values[idx - 1]);
-	}
-	auto all_zeros = all_of(differences.begin(), differences.end(), [](T diff) { return diff == 0; });
-	if ( !all_zeros ) {
-		return values.front() - solve_rec_part2(differences);
-	}
-	else {
-		return values.front();
-	}
 }
 
 void
@@ -79,7 +61,9 @@ part2()
 {
 	long sum = 0;
 	for ( const auto& line: read_file("data/day09.txt") ) {
-		sum += solve_rec_part2(read_ints(line));
+		auto values = read_ints(line);
+		reverse(values.begin(), values.end());
+		sum += solve_rec(values);
 	}
 	cout << sum << endl;
 }
