@@ -6,11 +6,14 @@
 #include <vector>
 using namespace std;
 
-vector<string>
+using pos_t    = tuple<size_t, size_t>;
+using puzzle_t = vector<string>;
+
+puzzle_t
 read_file(string_view filename)
 {
-	fstream        input{ filename };
-	vector<string> data;
+	fstream  input{ filename };
+	puzzle_t data;
 
 	for ( string line; getline(input, line); ) {
 		data.emplace_back(line);
@@ -19,102 +22,104 @@ read_file(string_view filename)
 	return data;
 }
 
+pos_t
+find_start_pos(const puzzle_t& puzzle)
+{
+	for ( size_t y = 0; y != puzzle.size(); ++y ) { // NOLINT
+		auto x = puzzle[y].find('S');               // NOLINT
+		if ( x != string::npos ) {
+			return { x, y };
+		}
+	}
+
+	return { 0, 0 };
+};
+
+bool
+predict_direction(const puzzle_t& puzzle, pos_t& current, char& direction)
+{
+	auto x = get<0>(current); // NOLINT
+	auto y = get<1>(current); // NOLINT
+
+	if ( direction == 'S' ) {
+		++y;
+		if ( y >= puzzle.size() ) {
+			return false;
+		}
+		const auto tile = puzzle[y][x];
+		if ( tile != 'J' && tile != '|' && tile != 'L' ) {
+			return false;
+		}
+		if ( tile == 'J' ) {
+			direction = 'W';
+		}
+		else if ( tile == 'L' ) {
+			direction = 'E';
+		}
+	}
+	else if ( direction == 'N' ) {
+		--y;
+		if ( y >= puzzle.size() ) {
+			return false;
+		}
+		const auto tile = puzzle[y][x];
+		if ( tile != '7' && tile != '|' && tile != 'F' ) {
+			return false;
+		}
+		if ( tile == '7' ) {
+			direction = 'W';
+		}
+		else if ( tile == 'F' ) {
+			direction = 'E';
+		}
+	}
+	else if ( direction == 'E' ) {
+		++x;
+		if ( x >= puzzle[y].size() ) {
+			return false;
+		}
+		const auto tile = puzzle[y][x];
+		if ( tile != 'J' && tile != '-' && tile != '7' ) {
+			return false;
+		}
+		if ( tile == 'J' ) {
+			direction = 'N';
+		}
+		else if ( tile == '7' ) {
+			direction = 'S';
+		}
+	}
+	else if ( direction == 'W' ) {
+		--x;
+		if ( x >= puzzle[y].size() ) {
+			return false;
+		}
+		const auto tile = puzzle[y][x];
+		if ( tile != 'L' && tile != '-' && tile != 'F' ) {
+			return false;
+		}
+		if ( tile == 'L' ) {
+			direction = 'N';
+		}
+		else if ( tile == 'F' ) {
+			direction = 'S';
+		}
+	}
+	else {
+		cerr << "invalid direction " << direction << ")!" << endl;
+		return false;
+	}
+
+	current = { x, y };
+	return true;
+};
+
 void
 part1()
 {
-	typedef tuple<size_t, size_t> pos_t;
-
 	const auto puzzle = read_file("data/day10.txt");
 
-	const auto find_start_pos = [&]() -> pos_t {
-		for ( size_t y = 0; y != puzzle.size(); ++y ) { // NOLINT
-			auto x = puzzle[y].find('S');               // NOLINT
-			if ( x != string::npos ) {
-				return { x, y };
-			}
-		}
-
-		return { 0, 0 };
-	};
-
-	const auto predict_direction = [&](pos_t& current, char& direction) -> bool {
-		auto x = get<0>(current); // NOLINT
-		auto y = get<1>(current); // NOLINT
-
-		if ( direction == 'S' ) {
-			++y;
-			if ( y >= puzzle.size() ) {
-				return false;
-			}
-			auto tile = puzzle[y][x];
-			if ( tile != 'J' && tile != '|' && tile != 'L' ) {
-				return false;
-			}
-			if ( tile == 'J' ) {
-				direction = 'W';
-			}
-			else if ( tile == 'L' ) {
-				direction = 'E';
-			}
-		}
-		else if ( direction == 'N' ) {
-			--y;
-			if ( y >= puzzle.size() ) {
-				return false;
-			}
-			auto tile = puzzle[y][x];
-			if ( tile != '7' && tile != '|' && tile != 'F' ) {
-				return false;
-			}
-			if ( tile == '7' ) {
-				direction = 'W';
-			}
-			else if ( tile == 'F' ) {
-				direction = 'E';
-			}
-		}
-		else if ( direction == 'E' ) {
-			++x;
-			if ( x >= puzzle[y].size() ) {
-				return false;
-			}
-			auto tile = puzzle[y][x];
-			if ( tile != 'J' && tile != '-' && tile != '7' ) {
-				return false;
-			}
-			if ( tile == 'J' ) {
-				direction = 'N';
-			}
-			else if ( tile == '7' ) {
-				direction = 'S';
-			}
-		}
-		else if ( direction == 'W' ) {
-			--x;
-			if ( x >= puzzle[y].size() ) {
-				return false;
-			}
-			auto tile = puzzle[y][x];
-			if ( tile != 'L' && tile != '-' && tile != 'F' ) {
-				return false;
-			}
-			if ( tile == 'L' ) {
-				direction = 'N';
-			}
-			else if ( tile == 'F' ) {
-				direction = 'S';
-			}
-		}
-		else {
-			cerr << "invalid direction " << direction << ")!" << endl;
-			return false;
-		}
-
-		current = { x, y };
-		return true;
-	};
-
-	const auto start_pos = find_start_pos();
+	const auto start_pos = find_start_pos(puzzle);
 
 	auto max_steps = 0;
 
@@ -126,11 +131,10 @@ part1()
 		for ( ;; ) {
 			++steps;
 
-			if ( !predict_direction(current_pos, current_direction) ) {
+			if ( !predict_direction(puzzle, current_pos, current_direction) ) {
 				break;
 			}
 		}
-		cout << "Richtung: " << direction << " - Schritte: " << steps << endl;
 
 		max_steps = max(max_steps, steps);
 	}
@@ -138,104 +142,34 @@ part1()
 	cout << max_steps / 2 << endl;
 }
 
+bool
+flood_fill(puzzle_t& puzzle, size_t x, size_t y)
+{
+	if ( y >= puzzle.size() || x >= puzzle[0].size() ) {
+		return false;
+	}
+
+	if ( puzzle[y][x] == ' ' ) {
+		puzzle[y][x] = 'o';
+		if ( !flood_fill(puzzle, x, y + 1) ||
+		     !flood_fill(puzzle, x, y - 1) ||
+		     !flood_fill(puzzle, x + 1, y) ||
+		     !flood_fill(puzzle, x - 1, y) ) {
+			return false;
+		}
+	}
+
+	return true;
+};
+
 void
 part2()
 {
-	typedef tuple<size_t, size_t> pos_t;
+	const auto puzzle_original = read_file("data/day10.txt");
 
-	const auto puzzle = read_file("data/day10.txt");
+	puzzle_t puzzle{ puzzle_original.size(), string(puzzle_original[0].size(), ' ') };
 
-	const auto find_start_pos = [&]() -> pos_t {
-		for ( size_t y = 0; y != puzzle.size(); ++y ) { // NOLINT
-			auto x = puzzle[y].find('S');               // NOLINT
-			if ( x != string::npos ) {
-				return { x, y };
-			}
-		}
-
-		return { 0, 0 };
-	};
-
-	const auto predict_direction = [&](pos_t& current, char& direction) -> bool {
-		auto x = get<0>(current); // NOLINT
-		auto y = get<1>(current); // NOLINT
-
-		if ( direction == 'S' ) {
-			++y;
-			if ( y >= puzzle.size() ) {
-				return false;
-			}
-			auto tile = puzzle[y][x];
-			if ( tile != 'J' && tile != '|' && tile != 'L' ) {
-				return false;
-			}
-			if ( tile == 'J' ) {
-				direction = 'W';
-			}
-			else if ( tile == 'L' ) {
-				direction = 'E';
-			}
-		}
-		else if ( direction == 'N' ) {
-			--y;
-			if ( y >= puzzle.size() ) {
-				return false;
-			}
-			auto tile = puzzle[y][x];
-			if ( tile != '7' && tile != '|' && tile != 'F' ) {
-				return false;
-			}
-			if ( tile == '7' ) {
-				direction = 'W';
-			}
-			else if ( tile == 'F' ) {
-				direction = 'E';
-			}
-		}
-		else if ( direction == 'E' ) {
-			++x;
-			if ( x >= puzzle[y].size() ) {
-				return false;
-			}
-			auto tile = puzzle[y][x];
-			if ( tile != 'J' && tile != '-' && tile != '7' ) {
-				return false;
-			}
-			if ( tile == 'J' ) {
-				direction = 'N';
-			}
-			else if ( tile == '7' ) {
-				direction = 'S';
-			}
-		}
-		else if ( direction == 'W' ) {
-			--x;
-			if ( x >= puzzle[y].size() ) {
-				return false;
-			}
-			auto tile = puzzle[y][x];
-			if ( tile != 'L' && tile != '-' && tile != 'F' ) {
-				return false;
-			}
-			if ( tile == 'L' ) {
-				direction = 'N';
-			}
-			else if ( tile == 'F' ) {
-				direction = 'S';
-			}
-		}
-		else {
-			cerr << "invalid direction " << direction << ")!" << endl;
-			return false;
-		}
-
-		current = { x, y };
-		return true;
-	};
-
-	vector<string> puzzle_copy(puzzle.size(), string(puzzle[0].size(), ' '));
-
-	const auto start_pos = find_start_pos();
+	const auto start_pos = find_start_pos(puzzle_original);
 
 	for ( const auto direction: { 'N', 'S', 'E', 'W' } ) {
 		auto current_direction = direction;
@@ -245,49 +179,28 @@ part2()
 			auto x = get<0>(current_pos); // NOLINT
 			auto y = get<1>(current_pos); // NOLINT
 
-			puzzle_copy[y][x] = puzzle[y][x];
+			puzzle[y][x] = puzzle_original[y][x];
 
-			if ( !predict_direction(current_pos, current_direction) ) {
+			if ( !predict_direction(puzzle_original, current_pos, current_direction) ) {
 				break;
 			}
 		}
 	}
 
-	function<bool(vector<string>&, pos_t)> flood_fill = [&](vector<string>& puzzle, pos_t position) -> bool {
-		auto x = get<0>(position); // NOLINT
-		auto y = get<1>(position); // NOLINT
+	for ( size_t y = 0; y != puzzle.size(); ++y ) {        // NOLINT
+		for ( size_t x = 0; x != puzzle[y].size(); ++x ) { // NOLINT
+			auto test_puzzle{ puzzle };
 
-		if ( y >= puzzle.size() || x >= puzzle[0].size() ) {
-			return false;
-		}
-
-		if ( puzzle[y][x] == ' ' ) {
-			puzzle[y][x] = 'o';
-			if ( !flood_fill(puzzle, { x, y + 1 }) ||
-			     !flood_fill(puzzle, { x, y - 1 }) ||
-			     !flood_fill(puzzle, { x + 1, y }) ||
-			     !flood_fill(puzzle, { x - 1, y }) ) {
-				return false;
-			}
-		}
-
-		return true;
-	};
-
-	for ( size_t y = 0; y != puzzle_copy.size(); ++y ) {
-		for ( size_t x = 0; x != puzzle_copy[y].size(); ++x ) {
-			auto test_puzzle = puzzle_copy;
-
-			if ( flood_fill(test_puzzle, { x, y }) ) {
-				puzzle_copy = test_puzzle;
+			if ( flood_fill(test_puzzle, x, y) ) {
+				puzzle = test_puzzle;
 			}
 		}
 	}
 
-	int sum = 0;
-	for ( auto& line: puzzle_copy ) {
+	auto sum = 0;
+	for ( auto& line: puzzle ) {
 		auto pipes = 0U;
-		for ( char chr: line ) {
+		for ( auto chr: line ) {
 			if ( chr == '|' || chr == 'L' || chr == 'J' ) {
 				++pipes;
 			}
@@ -296,6 +209,7 @@ part2()
 			}
 		}
 	}
+
 	cout << sum << endl;
 }
 
