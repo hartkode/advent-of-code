@@ -19,36 +19,6 @@ read_file(string_view filename)
 	return data;
 }
 
-vector<string>
-expand(const vector<string>& input)
-{
-	vector<string> result;
-
-	for ( const auto& line: input ) {
-		if ( line.find('#') == line.npos ) {
-			result.emplace_back(line);
-		}
-		result.emplace_back(line);
-	}
-
-	for ( size_t col = 0; col != result[0].size(); ++col ) {
-		bool empty_col = true;
-		for ( const auto& line: result ) {
-			if ( line[col] == '#' ) {
-				empty_col = false;
-			}
-		}
-		if ( empty_col ) {
-			for ( auto& line: result ) {
-				line.insert(col, 1, '.');
-			}
-			++col;
-		}
-	}
-
-	return result;
-}
-
 vector<tuple<long, long>>
 find_points(const vector<string>& input)
 {
@@ -68,33 +38,8 @@ find_points(const vector<string>& input)
 }
 
 void
-solve(const vector<tuple<long, long>>& points)
+find_empty_rows_and_cols(const vector<string>& input, set<long>& cols, set<long>& rows)
 {
-	long sum = 0;
-	for ( size_t i = 0; i != points.size(); ++i ) {
-		for ( size_t j = i + 1; j != points.size(); ++j ) {
-			const auto& from = points[i];
-			const auto& to   = points[j];
-
-			sum += abs(get<0>(from) - get<0>(to)) + abs(get<1>(from) - get<1>(to));
-		}
-	}
-	cout << sum << endl;
-
-}
-
-void
-part1()
-{
-	solve(find_points(expand(read_file("data/day11.txt"))));
-}
-
-void
-find_empty_rows_ans_cols(const vector<string>& input, set<long>& cols, set<long>& rows)
-{
-	cols.clear();
-	rows.clear();
-
 	for ( size_t row = 0; row != input.size(); ++row ) {
 		const auto& line = input[row];
 		if ( line.find('#') == line.npos ) {
@@ -115,31 +60,41 @@ find_empty_rows_ans_cols(const vector<string>& input, set<long>& cols, set<long>
 	}
 }
 
-void
-part2()
+long
+solve(const vector<string>& input, long scale)
 {
-	auto input  = read_file("data/day11.txt");
 	auto points = find_points(input);
 
 	set<long> cols;
 	set<long> rows;
 
-	find_empty_rows_ans_cols(input, cols, rows);
+	find_empty_rows_and_cols(input, cols, rows);
 
-	auto scale = 1000000 - 1;
 	for ( auto& point: points ) {
-		const auto row = get<0>(point) + count_if(rows.begin(), rows.end(), [&](long row) { return row < get<0>(point); }) * scale;
-		const auto col = get<1>(point) + count_if(cols.begin(), cols.end(), [&](long col) { return col < get<1>(point); }) * scale;
+		const auto row = get<0>(point) + count_if(rows.begin(), rows.end(), [&](long row) { return row < get<0>(point); }) * (scale - 1);
+		const auto col = get<1>(point) + count_if(cols.begin(), cols.end(), [&](long col) { return col < get<1>(point); }) * (scale - 1);
 
 		point = { row, col };
 	}
 
-	solve(points);
+	auto sum = 0L;
+	for ( size_t i = 0; i != points.size(); ++i ) {
+		for ( size_t j = i + 1; j != points.size(); ++j ) {
+			const auto& from = points[i];
+			const auto& to   = points[j];
+
+			sum += abs(get<0>(from) - get<0>(to)) + abs(get<1>(from) - get<1>(to));
+		}
+	}
+
+	return sum;
 }
 
 int
 main()
 {
-	part1();
-	part2();
+	const auto input = read_file("data/day11.txt");
+
+	cout << "Part1: " << solve(input, 2) << endl;
+	cout << "Part2: " << solve(input, 1000000) << endl;
 }
