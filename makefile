@@ -11,7 +11,8 @@ all: bin/day01 \
 	 bin/day09 \
 	 bin/day10 \
 	 bin/day11 \
-	 bin/day12
+	 bin/day12 \
+	 bin/day13
 
 bin:
 	mkdir $@
