@@ -34,13 +34,13 @@ split(string_view line, string_view delimiter)
 }
 
 vector<string>
-transpose(const vector<string>& input)
+transpose(const vector<string>& lines)
 {
-	vector<string> result(input[0].size());
+	vector<string> result(lines[0].size());
 
-	for ( const auto& i: input ) {
-		for ( size_t j = 0; j < i.size(); j++ ) {
-			result[j] += i[j];
+	for ( const auto& line: lines ) {
+		for ( size_t i = 0; i < line.size(); ++i ) {
+			result[i] += line[i];
 		}
 	}
 	return result;
@@ -52,8 +52,7 @@ find_mirror(const vector<string>& input)
 	for ( size_t idx = 1; idx < input.size(); ++idx ) {
 		bool equal = true;
 		for ( size_t cnt = 0; cnt != min(idx, input.size() - idx); ++cnt ) {
-			auto cmp_result = (input.at(idx + cnt) == input.at(idx - 1 - cnt));
-			if ( !cmp_result ) {
+			if ( !(input[idx + cnt] == input[idx - 1 - cnt]) ) {
 				equal = false;
 				break;
 			}
@@ -65,41 +64,23 @@ find_mirror(const vector<string>& input)
 	return 0;
 }
 
-void
-part1()
+long
+count_differences(string_view str1, string_view str2)
 {
-	auto contents = read_file("data/day13.txt");
-	auto parts    = split(contents, "\n\n");
-
-	long sum = 0;
-	for ( const auto& part: parts ) {
-		auto lines = split(part, "\n");
-
-		sum += find_mirror(transpose(lines));
-		sum += find_mirror(lines) * 100;
+	long diffs = 0;
+	for ( size_t idx = 0; idx != str1.size(); ++idx ) {
+		diffs += long(str1[idx] != str2[idx]);
 	}
-	cout << sum << endl;
+	return diffs;
 }
 
 long
-count_differences(string_view a, string_view b) // NOLINT
-{
-	long errs = 0;
-	for (size_t idx = 0; idx != a.size(); ++idx) {
-		if (a[idx] != b[idx]) {
-			++errs;
-		}
-	}
-	return errs;
-}
-
-long
-find_mirror2(const vector<string>& input)
+find_mirror_part2(const vector<string>& input)
 {
 	for ( size_t idx = 1; idx < input.size(); ++idx ) {
 		long errs = 0;
-		for ( size_t cnt = 0; cnt != min(idx, input.size() - idx); ++cnt ) {
-			errs += count_differences(input.at(idx + cnt), input.at(idx - 1 - cnt));
+		for ( size_t i = 0; i != min(idx, input.size() - idx); ++i ) {
+			errs += count_differences(input[idx + i], input[idx - 1 - i]);
 		}
 		if ( errs == 1 ) {
 			return long(idx);
@@ -109,8 +90,10 @@ find_mirror2(const vector<string>& input)
 }
 
 void
-part2()
+solve(const function<long(const vector<string>&)>& find_mirror)
 {
+	static const long multiplier = 100;
+
 	auto contents = read_file("data/day13.txt");
 	auto parts    = split(contents, "\n\n");
 
@@ -118,8 +101,8 @@ part2()
 	for ( const auto& part: parts ) {
 		auto lines = split(part, "\n");
 
-		sum += find_mirror2(transpose(lines));
-		sum += find_mirror2(lines) * 100;
+		sum += find_mirror(transpose(lines));
+		sum += find_mirror(lines) * multiplier;
 	}
 	cout << sum << endl;
 }
@@ -127,6 +110,6 @@ part2()
 int
 main()
 {
-	// part1();
-	part2();
+	solve(find_mirror);
+	solve(find_mirror_part2);
 }
