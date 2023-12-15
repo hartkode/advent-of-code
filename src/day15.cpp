@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <list>
+#include <numeric>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -14,11 +15,10 @@ read_file(string_view filename)
 	return { istreambuf_iterator<char>{ input }, istreambuf_iterator<char>{} };
 }
 
-inline string&
-rtrim(string& s, const char* t = " \t\n\r\f\v")
+void
+rtrim(string& str)
 {
-	s.erase(s.find_last_not_of(t) + 1);
-	return s;
+	str.erase(find_if(str.rbegin(), str.rend(), [](auto chr) { return !isspace(chr); }).base(), str.end());
 }
 
 vector<string>
@@ -28,7 +28,8 @@ split(const string& line, char sep)
 	stringstream   input{ line };
 
 	for ( string part; getline(input, part, sep); ) {
-		parts.emplace_back(rtrim(part));
+		rtrim(part);
+		parts.emplace_back(part);
 	}
 
 	return parts;
@@ -48,13 +49,8 @@ calculate_hash(string_view str)
 void
 part1()
 {
-	const auto    line  = read_file("data/day15.txt");
-	const auto    parts = split(line, ',');
-	unsigned long value = 0;
-	for ( const auto& part: parts ) {
-		value += calculate_hash(part);
-	}
-	cout << value << endl;
+	const auto parts = split(read_file("data/day15.txt"), ',');
+	cout << accumulate(parts.begin(), parts.end(), 0UL, [](auto init, const auto& str) { return init + calculate_hash(str); }) << endl;
 }
 
 void
