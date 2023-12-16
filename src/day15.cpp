@@ -73,7 +73,7 @@ part2()
 				box.emplace_back(lens, value);
 			}
 			else {
-				*iter = { lens, value };
+				get<1>(*iter) = value;
 			}
 		}
 		else {
