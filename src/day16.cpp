@@ -50,8 +50,8 @@ solve(const vector<string>& lines, tuple<size_t, size_t, unsigned int> start)
 		positions.pop();
 
 		while ( true ) {
-			col += get<0>(movement[dir]); // NOLINT
-			row += get<1>(movement[dir]); // NOLINT
+			col += get<0>(movement.at(dir % 4));
+			row += get<1>(movement.at(dir % 4));
 
 			if ( row >= lines.size() || col >= lines[0].size() ) {
 				break;
@@ -65,31 +65,26 @@ solve(const vector<string>& lines, tuple<size_t, size_t, unsigned int> start)
 
 			const auto chr = lines[row][col];
 
-			if ( chr == '|' && (dir == DIR_LEFT || dir == DIR_RIGHT) ) {
-				dir = (dir + 1) % 4;
-				positions.emplace(row, col, (dir + 2) % 4);
+			if ( (chr == '|' && (dir == DIR_LEFT || dir == DIR_RIGHT)) ||
+			     (chr == '-' && (dir == DIR_UP || dir == DIR_DOWN)) ) {
+				dir = dir + 1;
+				positions.emplace(row, col, dir + 2);
 			}
-			else if ( chr == '-' && (dir == DIR_UP || dir == DIR_DOWN) ) {
-				dir = (dir + 1) % 4;
-				positions.emplace(row, col, (dir + 2) % 4);
+			else if ( (chr == '/' && (dir == DIR_LEFT || dir == DIR_RIGHT)) ||
+			          (chr == '\\' && (dir == DIR_UP || dir == DIR_DOWN)) ) {
+				dir = dir + 3;
 			}
-			else if ( chr == '/' && (dir == DIR_LEFT || dir == DIR_RIGHT) ) {
-				dir = (dir + 3) % 4;
+			else if ( (chr == '\\' && (dir == DIR_LEFT || dir == DIR_RIGHT)) ||
+			          (chr == '/' && (dir == DIR_UP || dir == DIR_DOWN)) ) {
+				dir = dir + 1;
 			}
-			else if ( chr == '/' && (dir == DIR_UP || dir == DIR_DOWN) ) {
-				dir = (dir + 1) % 4;
-			}
-			else if ( chr == '\\' && (dir == DIR_LEFT || dir == DIR_RIGHT) ) {
-				dir = (dir + 1) % 4;
-			}
-			else if ( chr == '\\' && (dir == DIR_UP || dir == DIR_DOWN) ) {
-				dir = (dir + 3) % 4;
-			}
+
+			dir %= 4;
 		}
 	}
 
 	set<tuple<size_t, size_t>> foo;
-	for (const auto& bar: visited) {
+	for ( const auto& bar: visited ) {
 		foo.emplace(get<0>(bar.first), get<1>(bar.first));
 	}
 	return foo.size();
