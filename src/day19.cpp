@@ -22,7 +22,7 @@ split(string_view line, string_view delimiter)
 
 	vector<string> res;
 
-	while ( (pos_end = line.find(delimiter, pos_start)) != std::string::npos ) {
+	while ( (pos_end = line.find(delimiter, pos_start)) != string::npos ) {
 		auto token = line.substr(pos_start, pos_end - pos_start);
 		pos_start  = pos_end + delimiter.length();
 
@@ -36,37 +36,8 @@ split(string_view line, string_view delimiter)
 }
 
 void
-part1()
+part1(map<string, tuple<vector<tuple<string, string, long, string>>, string>> rules, const vector<string>& parts)
 {
-	const auto input        = split(read_file("data/day19.txt"), "\n\n");
-	const auto rules_string = split(input[0], "\n");
-	const auto parts        = split(input[1], "\n");
-
-	map<string, tuple<vector<tuple<string, string, long, string>>, string>> rules;
-
-	for ( const auto& rule: rules_string ) {
-		static const regex rules_pattern{ R"((.*)\{(.*),(.*)\})" };
-
-		smatch smatch;
-		if ( regex_search(rule, smatch, rules_pattern) ) {
-			string rule_name    = smatch[1];
-			string default_dest = smatch[3];
-
-			vector<tuple<string, string, long, string>> sub_rules;
-
-			for ( const auto& sub_rule: split(smatch[2].str(), ",") ) {
-				static const regex sub_rules_pattern{ R"((.)(.)(\d*):(.*))" };
-
-				std::smatch smatch2;
-				if ( regex_search(sub_rule, smatch2, sub_rules_pattern) ) {
-					sub_rules.emplace_back(smatch2[1], smatch2[2], stol(smatch2[3]), smatch2[4]);
-				}
-			}
-
-			rules[rule_name] = make_tuple(sub_rules, default_dest);
-		}
-	}
-
 	long sum = 0;
 	for ( const auto& part: parts ) {
 		static const regex parts_pattern{ R"(\{x=(\d*),m=(\d*),a=(\d*),s=(\d*)\})" };
@@ -110,36 +81,9 @@ part1()
 }
 
 void
-part2()
+part2(map<string, tuple<vector<tuple<string, string, long, string>>, string>> rules)
 {
-	const auto input        = split(read_file("data/day19.txt"), "\n\n");
-	const auto rules_string = split(input[0], "\n");
-
-	const regex rules_pattern{ R"((.*)\{(.*),(.*)\})" };
-	const regex sub_rules_pattern{ R"((.)(.)(\d*):(.*))" };
-
-	map<string, tuple<vector<tuple<string, string, long, string>>, string>> rules;
-
-	for ( const auto& rule: rules_string ) {
-		smatch smatch;
-		if ( regex_search(rule, smatch, rules_pattern) ) {
-			string rule_name    = smatch[1];
-			string default_dest = smatch[3];
-
-			vector<tuple<string, string, long, string>> sub_rules;
-
-			for ( const auto& sub_rule: split(smatch[2].str(), ",") ) {
-				std::smatch smatch2;
-				if ( regex_search(sub_rule, smatch2, sub_rules_pattern) ) {
-					sub_rules.emplace_back(smatch2[1], smatch2[2], stol(smatch2[3]), smatch2[4]);
-				}
-			}
-
-			rules[rule_name] = make_tuple(sub_rules, default_dest);
-		}
-	}
-
-	function<long(map<string, tuple<long, long>>, string)> count = [&](map<string, tuple<long, long>> ranges, string name) -> long {
+	function<long(map<string, tuple<long, long>>, string)> count = [&](map<string, tuple<long, long>> ranges, const string& name) -> long {
 		if ( name == "R" ) {
 			return 0;
 		}
@@ -203,6 +147,37 @@ part2()
 int
 main()
 {
-	part1();
-	part2();
+	const auto input        = split(read_file("data/day19.txt"), "\n\n");
+	const auto rules_string = split(input[0], "\n");
+	const auto parts        = split(input[1], "\n");
+
+	map<string, tuple<vector<tuple<string, string, long, string>>, string>> rules;
+
+	for ( const auto& rule: rules_string ) {
+		static const regex rules_pattern{ R"((.*)\{(.*),(.*)\})" };
+
+		smatch smatch;
+		if ( !regex_search(rule, smatch, rules_pattern) ) {
+			continue;
+		}
+
+		string name         = smatch[1];
+		string default_rule = smatch[3];
+
+		vector<tuple<string, string, long, string>> sub_rules;
+
+		for ( const auto& sub_rule: split(smatch[2].str(), ",") ) {
+			static const regex sub_rules_pattern{ R"((.)(.)(\d*):(.*))" };
+
+			std::smatch smatch2;
+			if ( regex_search(sub_rule, smatch2, sub_rules_pattern) ) {
+				sub_rules.emplace_back(smatch2[1], smatch2[2], stol(smatch2[3]), smatch2[4]);
+			}
+		}
+
+		rules[name] = make_tuple(sub_rules, default_rule);
+	}
+
+	part1(rules, parts);
+	part2(rules);
 }
