@@ -84,7 +84,7 @@ part1()
 
 	long number = 0;
 	for ( size_t idx = 0; idx != puzzle.size(); ++idx ) {
-		if ( all_of(supports[idx].begin(), supports[idx].end(), [&](const auto& item) { return supported_by[item].size() > 1; }) ) {
+		if ( all_of(supports[idx].begin(), supports[idx].end(), [&](const auto& idx2) { return supported_by[idx2].size() > 1; }) ) {
 			++number;
 		}
 	}
