@@ -38,10 +38,8 @@ read_file(string_view filename)
 }
 
 void
-part1()
+part1(vector<piece> puzzle)
 {
-	auto puzzle = read_file("data/day22.txt");
-
 	map<int, map<int, int>> grid;
 
 	map<size_t, vector<size_t>> supported_by;
@@ -91,8 +89,69 @@ part1()
 	cout << number << endl;
 }
 
+void
+part2(vector<piece> puzzle)
+{
+	map<int, map<int, int>> grid;
+
+	for ( auto& piece: puzzle ) {
+		int max_z = 0;
+		for ( auto x = piece.x1; x <= piece.x2; ++x ) {
+			for ( auto y = piece.y1; y <= piece.y2; ++y ) {
+				max_z = max(max_z, grid[x][y]);
+			}
+		}
+
+		auto height = piece.z2 - piece.z1 + 1;
+
+		for ( auto x = piece.x1; x <= piece.x2; ++x ) {
+			for ( auto y = piece.y1; y <= piece.y2; ++y ) {
+				grid[x][y] = max_z + height;
+			}
+		}
+
+		piece.z1 = max_z + 1;
+		piece.z2 = max_z + height;
+	}
+
+	int num = 0;
+	for ( size_t idx = 0; idx != puzzle.size(); ++idx ) {
+		map<int, map<int, int>> grid;
+
+		for ( size_t idx2 = 0; idx2 != puzzle.size(); ++idx2 ) {
+			if ( idx == idx2 ) {
+				continue;
+			}
+
+			const auto& piece = puzzle[idx2];
+
+			int max_z = 0;
+			for ( auto x = piece.x1; x <= piece.x2; ++x ) {
+				for ( auto y = piece.y1; y <= piece.y2; ++y ) {
+					max_z = max(max_z, grid[x][y]);
+				}
+			}
+
+			auto height = piece.z2 - piece.z1 + 1;
+
+			for ( auto x = piece.x1; x <= piece.x2; ++x ) {
+				for ( auto y = piece.y1; y <= piece.y2; ++y ) {
+					grid[x][y] = max_z + height;
+				}
+			}
+
+			if ( piece.z1 != max_z + 1 ) {
+				++num;
+			}
+		}
+	}
+	cout << num << endl;
+}
+
 int
 main()
 {
-	part1();
+	const auto puzzle = read_file("data/day22.txt");
+	part1(puzzle);
+	part2(puzzle);
 }
