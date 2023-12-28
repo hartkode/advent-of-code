@@ -1,13 +1,17 @@
 #include <algorithm>
 #include <array>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <queue>
 #include <set>
 #include <string>
 #include <vector>
 using namespace std;
+
+using position_t = tuple<size_t, size_t>;
 
 vector<string>
 read_file(string_view filename)
@@ -22,10 +26,10 @@ read_file(string_view filename)
 	return data;
 }
 
-set<tuple<size_t, size_t>>
-get_neighbours(const vector<string>& maze, tuple<size_t, size_t> possition)
+set<position_t>
+get_neighbours(const vector<string>& maze, position_t possition)
 {
-	static const tuple<size_t, size_t> deltas[] = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } }; // NOLINT
+	static const position_t deltas[] = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } }; // NOLINT
 
 	static const auto SYM_UP    = '^';
 	static const auto SYM_RIGHT = '>';
@@ -45,7 +49,7 @@ get_neighbours(const vector<string>& maze, tuple<size_t, size_t> possition)
 		return { make_tuple(row, col - 1) };
 	}
 
-	set<tuple<size_t, size_t>> positions;
+	set<position_t> positions;
 
 	for ( const auto& delta: deltas ) {
 		const auto new_row = row + get<0>(delta);
@@ -78,27 +82,54 @@ get_neighbours(const vector<string>& maze, tuple<size_t, size_t> possition)
 	return positions;
 }
 
+set<position_t>
+get_neighbours2(const vector<string>& maze, position_t possition)
+{
+	static const position_t deltas[] = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } }; // NOLINT
+
+	const auto [row, col] = possition;
+
+	set<position_t> positions;
+
+	for ( const auto& delta: deltas ) {
+		const auto new_row = row + get<0>(delta);
+		const auto new_col = col + get<1>(delta);
+
+		if ( new_row >= maze.size() || new_col >= maze[0].size() ) {
+			continue;
+		}
+
+		if ( maze[new_row][new_col] == '#' ) {
+			continue;
+		}
+
+		positions.emplace(new_row, new_col);
+	}
+
+	return positions;
+}
+
 void
 part1(const vector<string>& maze)
 {
-	const tuple<size_t, size_t> start = { 0, maze[0].find('.') };
-	const tuple<size_t, size_t> end   = { maze.size() - 1, maze[maze.size() - 1].find('.') };
+	const position_t start = { 0, maze[0].find('.') };
+	const position_t end   = { maze.size() - 1, maze[maze.size() - 1].find('.') };
 
-	queue<tuple<tuple<size_t, size_t>, set<tuple<size_t, size_t>>>> queue;
+	queue<tuple<position_t, set<position_t>>> queue;
 
-	queue.emplace(start, set<tuple<size_t, size_t>>{});
+	queue.emplace(start, set<position_t>{});
 
 	size_t longest = 0;
 	while ( !queue.empty() ) {
-		auto [position, seen] = queue.front();
+		auto [current_position, seen] = queue.front();
 		queue.pop();
 
-		while ( position != end ) {
-			seen.emplace(position);
+		while ( current_position != end ) {
+			seen.emplace(current_position);
 
-			const auto neighbours = get_neighbours(maze, position);
+			const auto neighbours = get_neighbours(maze, current_position);
 
-			vector<tuple<size_t, size_t>> next_positions;
+			vector<position_t> next_positions;
 
 			// { neighbours \ seen }
 			set_difference(neighbours.begin(), neighbours.end(),
@@ -109,17 +140,50 @@ part1(const vector<string>& maze)
 				break;
 			}
 
-			position = next_positions[0];
+			current_position = next_positions[0];
 
 			for ( size_t idx = 1; idx != next_positions.size(); ++idx ) {
 				queue.emplace(next_positions[idx], seen);
 			}
 		}
-		if ( position == end ) {
+		if ( current_position == end ) {
 			longest = max(longest, seen.size());
 		}
 	}
 	cout << longest << endl;
+}
+
+void
+part2(const vector<string>& maze)
+{
+	const position_t start = { 0, maze[0].find('.') };
+	const position_t end   = { maze.size() - 1, maze[maze.size() - 1].find('.') };
+
+	vector<vector<bool>> visited(maze.size(), vector<bool>(maze[0].size()));
+
+	function<long(position_t, long)> findmax = [&](position_t position, long current) -> long {
+		const auto [row, col] = position;
+
+		if ( visited[row][col] ) {
+			return 0;
+		}
+
+		if ( position == end ) {
+			return current;
+		}
+
+		long value = 0;
+		visited[row][col] = true;
+		for ( const auto& neighbour: get_neighbours2(maze, position) ) {
+			value = max(value, findmax(neighbour, current + 1));
+		}
+		visited[row][col] = false;
+
+		return value;
+	};
+
+	auto value = findmax(start, 0);
+	cout << value << endl;
 }
 
 int
@@ -127,4 +191,5 @@ main()
 {
 	const auto maze = read_file("data/day23.txt");
 	part1(maze);
+	part2(maze);
 }
