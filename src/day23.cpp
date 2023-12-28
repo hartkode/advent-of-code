@@ -110,58 +110,14 @@ get_neighbours2(const vector<string>& maze, position_t possition)
 }
 
 void
-part1(const vector<string>& maze)
-{
-	const position_t start = { 0, maze[0].find('.') };
-	const position_t end   = { maze.size() - 1, maze[maze.size() - 1].find('.') };
-
-	queue<tuple<position_t, set<position_t>>> queue;
-
-	queue.emplace(start, set<position_t>{});
-
-	size_t longest = 0;
-	while ( !queue.empty() ) {
-		auto [current_position, seen] = queue.front();
-		queue.pop();
-
-		while ( current_position != end ) {
-			seen.emplace(current_position);
-
-			const auto neighbours = get_neighbours(maze, current_position);
-
-			vector<position_t> next_positions;
-
-			// { neighbours \ seen }
-			set_difference(neighbours.begin(), neighbours.end(),
-			               seen.begin(), seen.end(),
-			               back_inserter(next_positions));
-
-			if ( next_positions.empty() ) {
-				break;
-			}
-
-			current_position = next_positions[0];
-
-			for ( size_t idx = 1; idx != next_positions.size(); ++idx ) {
-				queue.emplace(next_positions[idx], seen);
-			}
-		}
-		if ( current_position == end ) {
-			longest = max(longest, seen.size());
-		}
-	}
-	cout << longest << endl;
-}
-
-void
-part2(const vector<string>& maze)
+solve(const vector<string>& maze, function<set<position_t>(const vector<string>&, position_t)> neighbours)
 {
 	const position_t start = { 0, maze[0].find('.') };
 	const position_t end   = { maze.size() - 1, maze[maze.size() - 1].find('.') };
 
 	vector<vector<bool>> visited(maze.size(), vector<bool>(maze[0].size()));
 
-	function<long(position_t, long)> findmax = [&](position_t position, long current) -> long {
+	function<long(position_t, long)> find_longest_path = [&](position_t position, long current) -> long {
 		const auto [row, col] = position;
 
 		if ( visited[row][col] ) {
@@ -173,16 +129,17 @@ part2(const vector<string>& maze)
 		}
 
 		long value = 0;
+
 		visited[row][col] = true;
-		for ( const auto& neighbour: get_neighbours2(maze, position) ) {
-			value = max(value, findmax(neighbour, current + 1));
+		for ( const auto& neighbour: neighbours(maze, position) ) {
+			value = max(value, find_longest_path(neighbour, current + 1));
 		}
 		visited[row][col] = false;
 
 		return value;
 	};
 
-	auto value = findmax(start, 0);
+	auto value = find_longest_path(start, 0);
 	cout << value << endl;
 }
 
@@ -190,6 +147,6 @@ int
 main()
 {
 	const auto maze = read_file("data/day23.txt");
-	part1(maze);
-	part2(maze);
+	solve(maze, get_neighbours);
+	solve(maze, get_neighbours2);
 }
