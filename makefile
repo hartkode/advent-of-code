@@ -31,6 +31,9 @@ bin:
 bin/%: src/%.cpp | bin
 	c++ $(CPPFLAGS) $^ -o $@
 
+bin/day24: src/day24.cpp | bin
+	c++ $(CPPFLAGS) -Wno-sign-conversion -I/usr/local/include $^ -L/usr/local/lib -lz3 -o $@
+
 clean:
 	rm -rf bin
 

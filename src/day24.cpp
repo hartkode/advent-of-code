@@ -2,9 +2,12 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <string>
 #include <tuple>
 #include <vector>
+#include <z3++.h>
+
 using namespace std;
 
 using line_type   = tuple<double, double, double, double, double, double>;
@@ -122,10 +125,49 @@ part1(const puzzle_type& input)
 	cout << sum << endl;
 }
 
+void
+part2(const puzzle_type& input)
+{
+	auto config  = z3::config();
+	auto context = z3::context(config);
+	auto solver  = z3::solver(context);
+
+	const auto px = context.int_const("px");
+	const auto py = context.int_const("py");
+	const auto pz = context.int_const("pz");
+	const auto vx = context.int_const("vx");
+	const auto vy = context.int_const("vy");
+	const auto vz = context.int_const("vz");
+
+	for ( size_t i = 0; i != input.size(); ++i ) {
+		const auto& stone = input[i];
+
+		const auto pxn = context.int_val(int64_t(get<0>(stone)));
+		const auto pyn = context.int_val(int64_t(get<1>(stone)));
+		const auto pzn = context.int_val(int64_t(get<2>(stone)));
+		const auto vxn = context.int_val(int64_t(get<3>(stone)));
+		const auto vyn = context.int_val(int64_t(get<4>(stone)));
+		const auto vzn = context.int_val(int64_t(get<5>(stone)));
+		const auto tn  = context.int_const(to_string(i+1).c_str());
+
+		solver.add(tn >= 0);
+		solver.add(pxn + vxn * tn == px + vx * tn);
+		solver.add(pyn + vyn * tn == py + vy * tn);
+		solver.add(pzn + vzn * tn == pz + vz * tn);
+	}
+
+	solver.check();
+
+	auto model = solver.get_model();
+
+	cout << model.eval(px).as_int64() + model.eval(py).as_int64() + model.eval(pz).as_int64() << endl;
+}
+
 int
 main()
 {
 	const auto input = read_file("data/day24.txt");
 
 	part1(input);
+	part2(input);
 }
