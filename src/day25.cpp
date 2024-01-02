@@ -79,7 +79,7 @@ random_node(const graph_type& graph)
 	static random_device dev;
 	static mt19937       generator(dev());
 
-	uniform_int_distribution<graph_type::size_type> distribute(0, graph.size());
+	uniform_int_distribution<graph_type::size_type> distribute(0, graph.size()-1);
 
 	auto iter = graph.begin();
 	advance(iter, distribute(generator));
