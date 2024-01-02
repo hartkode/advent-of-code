@@ -1,11 +1,10 @@
 #include <algorithm>
-#include <cstdlib>
+#include <array>
 #include <fstream>
 #include <iostream>
-#include <iterator>
-#include <list>
 #include <map>
 #include <queue>
+#include <random>
 #include <set>
 #include <sstream>
 #include <string>
@@ -47,48 +46,7 @@ read_file(string_view filename)
 }
 
 bool
-bfs(const graph_type& graph, const string& source, const string& dest, map<string, string>& parents) // NOLINT
-{
-	set<string> visited;
-
-	parents.clear();
-
-	queue<string> queue;
-	queue.emplace(source);
-
-	while ( !queue.empty() ) {
-		auto candidate = queue.front();
-		queue.pop();
-
-		if ( candidate == dest ) {
-			return true;
-		}
-
-		for ( const auto& neighbour: graph.at(candidate) ) {
-			if ( !visited.contains(neighbour) ) {
-				queue.emplace(neighbour);
-				parents[neighbour] = candidate;
-				visited.emplace(neighbour);
-			}
-		}
-	}
-
-	return false;
-}
-
-void
-dfs(const graph_type& graph, const string& source, set<string>& visited) // NOLINT
-{
-	visited.emplace(source);
-	for ( const auto& node: graph.at(source) ) {
-		if ( !visited.contains(node) ) {
-			dfs(graph, node, visited);
-		}
-	}
-}
-
-bool
-bfs1(graph_type graph, const string& source, const string& dest, function<void(const string&, const string&)> visit) // NOLINT
+bfs(graph_type graph, const string& source, const string& dest, function<void(const string&, const string&)> visit) // NOLINT
 {
 	set<string> visited;
 
@@ -115,115 +73,68 @@ bfs1(graph_type graph, const string& source, const string& dest, function<void(c
 	return false;
 }
 
-void
-print_graph_stats(const graph_type& graph)
+auto
+random_node(const graph_type& graph)
 {
-	size_t nodes = 0;
-	size_t edges = 0;
-	for ( const auto& link: graph ) {
-		nodes++;
-		edges += link.second.size();
-	}
-	cout << nodes << ", " << edges / 2 << endl;
+	static random_device dev;
+	static mt19937       generator(dev());
+
+	uniform_int_distribution<graph_type::size_type> distribute(0, graph.size());
+
+	auto iter = graph.begin();
+	advance(iter, distribute(generator));
+	return iter->first;
 }
 
 void
 part1(graph_type graph)
 {
-	srand(unsigned(time(nullptr)));
-
-	vector<string> nodes(graph.size());
-	for ( const auto& foo: graph ) {
-		nodes.emplace_back(foo.first);
-	}
-
-	map<tuple<string, string>, int> counter;
+	map<tuple<string, string>, int> frequencies;
 	for ( size_t idx = 0; idx != 2; ++idx ) {
 		for ( const auto& second: graph ) {
-			bfs1(graph, nodes[size_t(rand()) % nodes.size()], second.first, [&](const string& candidate, const string& neighbour) {
+			bfs(graph, random_node(graph), second.first, [&](const string& candidate, const string& neighbour) {
 				if ( candidate < neighbour ) {
-					counter[make_tuple(candidate, neighbour)]++;
+					frequencies[make_tuple(candidate, neighbour)]++;
 				}
 				else {
-					counter[make_tuple(neighbour, candidate)]++;
+					frequencies[make_tuple(neighbour, candidate)]++;
 				}
 			});
 		}
 	}
 
-	vector<tuple<tuple<string, string>, int>> all_links{ counter.begin(), counter.end() };
+	vector<tuple<tuple<string, string>, int>> sorted_frequencies{ frequencies.begin(), frequencies.end() };
 
-	sort(all_links.begin(), all_links.end(), [](const auto& lhs, const auto& rhs) {
+	sort(sorted_frequencies.begin(), sorted_frequencies.end(), [](const auto& lhs, const auto& rhs) {
 		return get<1>(lhs) > get<1>(rhs);
 	});
 
-	for ( size_t i = 0; i != 3; ++i ) {
-		const auto [links, num] = all_links[i];
-		const auto [lhs, rhs]   = links;
+	sorted_frequencies.erase(sorted_frequencies.begin() + 3, sorted_frequencies.end());
 
-		graph[lhs].erase(rhs);
-		graph[rhs].erase(lhs);
+	for ( const auto& link: sorted_frequencies ) {
+		const auto [left, right] = get<0>(link);
+
+		graph[left].erase(right);
+		graph[right].erase(left);
 	}
 
-	set<string> reachable;
-	const auto start_from_a = get<0>(get<0>(all_links[0]));
-	bfs1(graph, start_from_a, "--not there--", [&](const string& candidate, const string& neighbour) {
-		reachable.insert(candidate);
-		reachable.insert(neighbour);
-	});
+	auto reachable = [&graph](const string& start_node) {
+		set<string> nodes;
+		bfs(graph, start_node, "", [&nodes](const string& candidate, const string& neighbour) {
+			nodes.insert(candidate);
+			nodes.insert(neighbour);
+		});
+		return nodes.size();
+	};
 
-	set<string> reachable2;
-	const auto start_from_b = get<1>(get<0>(all_links[0]));
-	bfs1(graph, start_from_b, "--not there--", [&](const string& candidate, const string& neighbour) {
-		reachable2.insert(candidate);
-		reachable2.insert(neighbour);
-	});
+	const auto [left, right] = get<0>(sorted_frequencies[0]);
 
-	cout << reachable.size() * reachable2.size() << endl;
-}
-
-void
-print_graph(const graph_type& graph)
-{
-	for ( const auto& node: graph ) {
-		cout << node.first << ": ";
-		copy(node.second.begin(), node.second.end(), ostream_iterator<string>(cout, ", "));
-		cout << endl;
-	}
-}
-
-graph_type
-get_rgraph(const graph_type& graph)
-{
-	graph_type rgraph;
-	for ( const auto& node: graph ) {
-		for ( const auto& link: node.second ) {
-			rgraph[link].insert(node.first);
-		}
-	}
-	return rgraph;
+	cout << reachable(left) * reachable(right) << endl;
 }
 
 int
 main()
 {
 	auto graph = read_file("data/day25.txt");
-
-	// print_graph(graph);
-
 	part1(graph);
-
-	// print_graph(graph);
-	// cout << " ------------ " << endl;
-	// print_graph(get_rgraph(graph));
-	// cout << " ------------ " << endl;
-	// print_graph(get_rgraph(get_rgraph(graph)));
-
-	// map<string, string> parents;
-
-	// if ( bfs(graph, "jqt", "bvb", parents) ) {
-	// 	for ( const auto& [lhs, rhs]: parents ) {
-	// 		cout << lhs << ": " << rhs << endl;
-	// 	}
-	// }
 }
