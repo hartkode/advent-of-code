@@ -1,4 +1,3 @@
-#include <cctype>
 #include <fstream>
 #include <iostream>
 #include <set>
@@ -25,8 +24,8 @@ read_file(string_view filename)
 vector<string>
 split(const string& line, char sep)
 {
-	vector<string> parts{};
 	stringstream   input{ line };
+	vector<string> parts;
 
 	for ( string part; getline(input, part, sep); ) {
 		parts.emplace_back(part);
@@ -49,13 +48,12 @@ read_ints(const string& line)
 	return container;
 }
 
-vector<unsigned long>
-build_data_set()
+auto
+build_data_set(string_view filename)
 {
-	const auto            lines = read_file("data/day04.txt");
-	vector<unsigned long> values{};
+	vector<unsigned long> values;
 
-	for ( const auto& line: lines ) {
+	for ( const auto& line: read_file(filename) ) {
 		const auto cards   = split(line, ':');
 		const auto numbers = split(cards[1], '|');
 
@@ -75,10 +73,10 @@ build_data_set()
 }
 
 void
-pass1()
+pass1(const vector<unsigned long>& values)
 {
 	auto sum = 0U;
-	for ( auto value: build_data_set() ) {
+	for ( auto value: values ) {
 		if ( value != 0 ) {
 			sum += (1U << (value - 1));
 		}
@@ -88,10 +86,9 @@ pass1()
 }
 
 void
-pass2()
+pass2(const vector<unsigned long>& values)
 {
-	const auto values = build_data_set();
-	auto       count  = 0U;
+	auto count = 0U;
 
 	function<void(size_t, size_t)> process = [&](size_t start, size_t end) -> void {
 		for ( ; start != end; ++start ) {
@@ -111,6 +108,7 @@ pass2()
 int
 main()
 {
-	pass1();
-	pass2();
+	const auto values = build_data_set("data/day04.txt");
+	pass1(values);
+	pass2(values);
 }

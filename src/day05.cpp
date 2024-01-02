@@ -49,7 +49,7 @@ read_file(string_view filename)
 vector<string>
 split(const string& line, char sep)
 {
-	vector<string> parts{};
+	vector<string> parts;
 	stringstream   input{ line };
 
 	for ( string part; getline(input, part, sep); ) {
@@ -60,10 +60,8 @@ split(const string& line, char sep)
 }
 
 void
-part1()
+part1(const vector<string>& lines)
 {
-	auto lines = read_file("data/day05.txt");
-
 	auto read_ints = [](const string& line) {
 		stringstream iss{ line };
 		return vector<long>{ istream_iterator<long>{ iss }, istream_iterator<long>{} };
@@ -71,8 +69,8 @@ part1()
 
 	auto seeds = read_ints(lines[0].substr(6));
 
-	map<string, string>        category_mapping{};
-	map<string, vector<Entry>> range_mapping{};
+	map<string, string>        category_mapping;
+	map<string, vector<Entry>> range_mapping;
 
 	// read blocks
 	for ( size_t idx = 1; idx < lines.size(); ) {
@@ -84,7 +82,7 @@ part1()
 
 		category_mapping[parts[0]] = parts[2];
 
-		vector<Entry> mapping{};
+		vector<Entry> mapping;
 
 		for ( ; idx < lines.size() && !lines[idx].empty(); ++idx ) {
 			auto values = read_ints(lines[idx]);
@@ -117,10 +115,8 @@ part1()
 }
 
 void
-part2()
+part2(const vector<string>& lines)
 {
-	auto lines = read_file("data/day05-sample1.txt");
-
 	auto read_ints = [](const string& line) {
 		stringstream iss{ line };
 		return vector<long>{ istream_iterator<long>{ iss }, istream_iterator<long>{} };
@@ -128,8 +124,8 @@ part2()
 
 	auto seeds = read_ints(lines[0].substr(6));
 
-	map<string, string>        category_mapping{};
-	map<string, vector<Entry>> range_mapping{};
+	map<string, string>        category_mapping;
+	map<string, vector<Entry>> range_mapping;
 
 	// read blocks
 	for ( size_t idx = 1; idx < lines.size(); ) {
@@ -141,7 +137,7 @@ part2()
 
 		category_mapping[parts[0]] = parts[2];
 
-		vector<Entry> mapping{};
+		vector<Entry> mapping;
 
 		for ( ; idx < lines.size() && !lines[idx].empty(); ++idx ) {
 			auto values = read_ints(lines[idx]);
@@ -181,6 +177,7 @@ part2()
 int
 main()
 {
-	part1();
-	part2();
+	auto lines = read_file("data/day05.txt");
+	part1(lines);
+	part2(lines);
 }

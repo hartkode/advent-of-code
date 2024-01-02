@@ -21,10 +21,8 @@ read_file(string_view filename)
 }
 
 void
-part1()
+part1(const vector<string>& lines)
 {
-	const auto lines = read_file("data/day14.txt");
-
 	auto start = chrono::steady_clock::now();
 
 	size_t sum = 0;
@@ -182,10 +180,9 @@ tilt_east(vector<string>& lines)
 void
 tilt(vector<string>& lines)
 {
-	tilt_north(lines);
-	tilt_west(lines);
-	tilt_south(lines);
-	tilt_east(lines);
+	for ( auto tilt: { tilt_north, tilt_west, tilt_south, tilt_east } ) {
+		tilt(lines);
+	}
 }
 
 size_t
@@ -201,16 +198,14 @@ calc(const vector<string>& lines)
 }
 
 void
-part2()
+part2(vector<string> lines)
 {
-	auto lines = read_file("data/day14.txt");
-
 	auto                      start = chrono::steady_clock::now();
 	map<vector<string>, long> cache;
 
 	const long dest = 1'000'000'000;
 
-	for ( long index = 0; true; ++index ) {
+	for ( long index = 0;; ++index ) {
 		auto iter = cache.find(lines);
 		if ( iter != cache.end() ) {
 			auto offset       = iter->second;
@@ -238,6 +233,7 @@ part2()
 int
 main()
 {
-	part1();
-	part2();
+	const auto lines = read_file("data/day14.txt");
+	part1(lines);
+	part2(lines);
 }

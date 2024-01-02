@@ -45,10 +45,8 @@ solve_rec(const vector<T>& values)
 }
 
 void
-part1()
+part1(const vector<string>& lines)
 {
-	auto lines = read_file("data/day09.txt");
-
 	long sum = 0;
 	for ( const auto& line: lines ) {
 		sum += solve_rec(read_ints(line));
@@ -57,10 +55,10 @@ part1()
 }
 
 void
-part2()
+part2(const vector<string>& lines)
 {
 	long sum = 0;
-	for ( const auto& line: read_file("data/day09.txt") ) {
+	for ( const auto& line: lines ) {
 		auto values = read_ints(line);
 		reverse(values.begin(), values.end());
 		sum += solve_rec(values);
@@ -71,6 +69,7 @@ part2()
 int
 main()
 {
-	part1();
-	part2();
+	auto lines = read_file("data/day09.txt");
+	part1(lines);
+	part2(lines);
 }

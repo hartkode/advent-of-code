@@ -44,9 +44,7 @@ solve(const vector<string>& lines, tuple<size_t, size_t, unsigned int> start)
 	positions.emplace(start);
 
 	while ( !positions.empty() ) {
-		auto row = get<0>(positions.front());
-		auto col = get<1>(positions.front());
-		auto dir = get<2>(positions.front());
+		auto [row, col, dir] = positions.front();
 		positions.pop();
 
 		while ( true ) {

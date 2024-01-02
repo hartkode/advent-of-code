@@ -38,8 +38,7 @@ find_start_pos(const puzzle_t& puzzle)
 bool
 predict_direction(const puzzle_t& puzzle, pos_t& current, char& direction)
 {
-	auto x = get<0>(current); // NOLINT
-	auto y = get<1>(current); // NOLINT
+	auto [x, y] = current;
 
 	if ( direction == 'S' ) {
 		++y;
@@ -115,10 +114,8 @@ predict_direction(const puzzle_t& puzzle, pos_t& current, char& direction)
 };
 
 void
-part1()
+part1(const puzzle_t& puzzle)
 {
-	const auto puzzle = read_file("data/day10.txt");
-
 	const auto start_pos = find_start_pos(puzzle);
 
 	auto max_steps = 0;
@@ -163,10 +160,8 @@ flood_fill(puzzle_t& puzzle, size_t x, size_t y)
 };
 
 void
-part2()
+part2(const puzzle_t& puzzle_original)
 {
-	const auto puzzle_original = read_file("data/day10.txt");
-
 	puzzle_t puzzle{ puzzle_original.size(), string(puzzle_original[0].size(), ' ') };
 
 	const auto start_pos = find_start_pos(puzzle_original);
@@ -176,8 +171,7 @@ part2()
 		auto current_pos       = start_pos;
 
 		for ( ;; ) {
-			auto x = get<0>(current_pos); // NOLINT
-			auto y = get<1>(current_pos); // NOLINT
+			auto [x, y] = current_pos;
 
 			puzzle[y][x] = puzzle_original[y][x];
 
@@ -216,6 +210,7 @@ part2()
 int
 main()
 {
-	part1();
-	part2();
+	const auto puzzle = read_file("data/day10.txt");
+	part1(puzzle);
+	part2(puzzle);
 }

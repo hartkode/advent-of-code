@@ -104,10 +104,8 @@ brute_force(string_view puzzle, const vector<long>& nums)
 }
 
 void
-part1()
+part1(const vector<string>& input)
 {
-	const auto input = read_file("data/day12.txt");
-
 	auto sum = 0L;
 	for ( const auto& line: input ) {
 		auto parts  = split(line, ' ');
@@ -122,5 +120,6 @@ part1()
 int
 main()
 {
-	part1();
+	const auto input = read_file("data/day12.txt");
+	part1(input);
 }
