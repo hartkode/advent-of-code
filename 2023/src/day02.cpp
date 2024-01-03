@@ -11,7 +11,7 @@ using namespace std;
 vector<string>
 split(const string& line, char sep)
 {
-	vector<string> parts{};
+	vector<string> parts;
 	stringstream   input{ line };
 
 	for ( string part; getline(input, part, sep); ) {
