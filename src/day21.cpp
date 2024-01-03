@@ -108,34 +108,35 @@ part2(const vector<string>& lines)
 	const size_t steps      = 26501365;
 	const auto   grid_width = steps / size - 1;
 
-	const auto odd  = pow2(grid_width / 2 * 2 + 1);
-	const auto even = pow2((grid_width + 1) / 2 * 2);
+	const auto num_odd_tiles   = pow2(grid_width / 2 * 2 + 1);
+	const auto num_even_tiles  = pow2((grid_width + 1) / 2 * 2);
+	const auto num_odd_points  = count(lines, start, size * 2 + 1);
+	const auto num_even_points = count(lines, start, size * 2);
 
-	const auto odd_points  = count(lines, start, size * 2 + 1);
-	const auto even_points = count(lines, start, size * 2);
+	auto sum = num_odd_tiles * num_odd_points + num_even_tiles * num_even_points;
 
-	const auto corner_t = count(lines, { size - 1, col }, size - 1);
-	const auto corner_r = count(lines, { row, 0 }, size - 1);
-	const auto corner_b = count(lines, { 0, col }, size - 1);
-	const auto corner_l = count(lines, { row, size - 1 }, size - 1);
+	const auto corner_top    = count(lines, { size - 1, col }, size - 1);
+	const auto corner_right  = count(lines, { row, 0 }, size - 1);
+	const auto corner_bottom = count(lines, { 0, col }, size - 1);
+	const auto corner_left   = count(lines, { row, size - 1 }, size - 1);
 
-	const auto small_tr = count(lines, { size - 1, 0 }, size / 2 - 1);
-	const auto small_tl = count(lines, { size - 1, size - 1 }, size / 2 - 1);
-	const auto small_br = count(lines, { 0, 0 }, size / 2 - 1);
-	const auto small_bl = count(lines, { 0, size - 1 }, size / 2 - 1);
+	sum += corner_top + corner_right + corner_bottom + corner_left;
 
-	const auto large_tr = count(lines, { size - 1, 0 }, size * 3 / 2 - 1);
-	const auto large_tl = count(lines, { size - 1, size - 1 }, size * 3 / 2 - 1);
-	const auto large_br = count(lines, { 0, 0 }, size * 3 / 2 - 1);
-	const auto large_bl = count(lines, { 0, size - 1 }, size * 3 / 2 - 1);
+	const auto small_top_right    = count(lines, { size - 1, 0 }, size / 2 - 1);
+	const auto small_top_left     = count(lines, { size - 1, size - 1 }, size / 2 - 1);
+	const auto small_bottom_right = count(lines, { 0, 0 }, size / 2 - 1);
+	const auto small_bottom_left  = count(lines, { 0, size - 1 }, size / 2 - 1);
 
-	auto total = odd * odd_points;
-	total += even * even_points;
-	total += corner_t + corner_r + corner_b + corner_l;
-	total += (grid_width + 1) * (small_tr + small_tl + small_br + small_bl);
-	total += grid_width * (large_tr + large_tl + large_br + large_bl);
+	sum += (grid_width + 1) * (small_top_right + small_top_left + small_bottom_right + small_bottom_left);
 
-	cout << total << endl;
+	const auto large_top_right    = count(lines, { size - 1, 0 }, size * 3 / 2 - 1);
+	const auto large_top_left     = count(lines, { size - 1, size - 1 }, size * 3 / 2 - 1);
+	const auto large_bottom_right = count(lines, { 0, 0 }, size * 3 / 2 - 1);
+	const auto large_bottom_left  = count(lines, { 0, size - 1 }, size * 3 / 2 - 1);
+
+	sum += grid_width * (large_top_right + large_top_left + large_bottom_right + large_bottom_left);
+
+	cout << sum << endl;
 }
 
 int
