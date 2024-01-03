@@ -32,24 +32,27 @@ process(const vector<long>& values)
 void
 combination(const vector<long>& values, size_t r)
 {
-	vector<bool> v(values.size());
-	fill(v.end() - long(r), v.end(), true);
-	vector<long> set(r);
+	vector<bool> marker(values.size());
+
+	fill(marker.end() - long(r), marker.end(), true);
+
+	vector<long> subset(r);
+
 	do {
-		set.clear();
+		subset.clear();
 		for ( size_t i = 0; i != values.size(); ++i ) {
-			if ( v[i] ) {
-				set.emplace_back(values[i]);
+			if ( marker[i] ) {
+				subset.emplace_back(values[i]);
 			}
 		}
-		process(set);
-	} while ( std::next_permutation(v.begin(), v.end()) );
+		process(subset);
+	} while ( std::next_permutation(marker.begin(), marker.end()) );
 }
 
 int
 main()
 {
-	auto values = read_file("data/day01-sample1.txt");
+	auto values = read_file("data/day01.txt");
 	combination(values, 2);
 	combination(values, 3);
 }
