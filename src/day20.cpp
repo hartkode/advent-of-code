@@ -133,14 +133,13 @@ struct OutputModule : public Module {
 };
 
 void
-part1()
+part1(const vector<string>& input)
 {
 	queue<tuple<string, int, string>> queue;
 	map<string, shared_ptr<Module>>   modules;
 
 	modules["output"] = make_shared<OutputModule>("output", queue);
 
-	const auto input = read_file("data/day20.txt");
 	for ( const auto& line: input ) {
 		const auto parts  = split(line, " -> ");
 		auto       module = parts[0];
@@ -199,14 +198,13 @@ part1()
 }
 
 void
-part2()
+part2(const vector<string>& input)
 {
 	queue<tuple<string, int, string>> queue;
 	map<string, shared_ptr<Module>>   modules;
 
 	modules["output"] = make_shared<OutputModule>("output", queue);
 
-	const auto input = read_file("data/day20.txt");
 	for ( const auto& line: input ) {
 		const auto parts  = split(line, " -> ");
 		auto       module = parts[0];
@@ -289,6 +287,7 @@ part2()
 int
 main()
 {
-	part1();
-	part2();
+	const auto input = read_file("data/day20.txt");
+	part1(input);
+	part2(input);
 }
