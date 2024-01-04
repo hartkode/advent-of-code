@@ -30,9 +30,7 @@ part1(vector<tuple<long, long, char, string>>& data)
 	long sum = 0;
 	for ( const auto& [min, max, chr, password]: data ) {
 		const auto amount = count(password.begin(), password.end(), chr);
-		if ( min <= amount && amount <= max ) {
-			++sum;
-		}
+		sum += static_cast<long>(min <= amount && amount <= max);
 	}
 	cout << sum << endl;
 }
@@ -42,9 +40,7 @@ part2(vector<tuple<long, long, char, string>>& data)
 {
 	long sum = 0;
 	for ( const auto& [min, max, chr, password]: data ) {
-		if ( (password[size_t(min - 1)] == chr) ^ (password[size_t(max - 1)] == chr) ) {
-			++sum;
-		}
+		sum += ((password[size_t(min - 1)] == chr) ^ (password[size_t(max - 1)] == chr));
 	}
 	cout << sum << endl;
 }
