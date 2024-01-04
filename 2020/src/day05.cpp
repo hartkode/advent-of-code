@@ -2,9 +2,9 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <numeric>
 #include <string>
 #include <vector>
-#include <numeric>
 using namespace std;
 
 auto
