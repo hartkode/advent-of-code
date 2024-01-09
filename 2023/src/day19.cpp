@@ -101,35 +101,23 @@ part2(map<string, tuple<vector<tuple<string, string, long, string>>, string>> ru
 
 		long result = 0;
 
-		bool run_trough = true;
 		for ( const auto& [key, cmp, value, target]: sub_rules ) {
-			const auto [lo, hi] = ranges[key];
-			pair<long, long> T; // NOLINT
-			pair<long, long> F; // NOLINT
+			auto sub_ranges = ranges;
+			auto [lo, hi]   = ranges[key];
+
 			if ( cmp == "<" ) {
-				T = { lo, min(value - 1, hi) };
-				F = { max(value, lo), hi };
+				sub_ranges[key] = { lo, value - 1 };
+				ranges[key]     = { value, hi };
 			}
-			else {
-				T = { max(value + 1, lo), hi };
-				F = { lo, min(value, hi) };
+			else /* if ( cmp == ">" ) */ {
+				ranges[key]     = { lo, value };
+				sub_ranges[key] = { value + 1, hi };
 			}
-			if ( T.first <= T.second ) {
-				auto copy = ranges;
-				copy[key] = T;
-				result += count(copy, target);
-			}
-			if ( F.first <= F.second ) {
-				ranges[key] = F;
-			}
-			else {
-				run_trough = false;
-				break;
-			}
+
+			result += count(sub_ranges, target);
 		}
-		if ( run_trough ) {
-			result += count(ranges, fallback);
-		}
+
+		result += count(ranges, fallback);
 
 		return result;
 	};
