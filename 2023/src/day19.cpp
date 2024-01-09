@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <regex>
 #include <string>
 #include <vector>
@@ -83,18 +84,16 @@ part1(map<string, tuple<vector<tuple<string, string, long, string>>, string>> ru
 void
 part2(map<string, tuple<vector<tuple<string, string, long, string>>, string>> rules)
 {
-	function<long(map<string, tuple<long, long>>, string)> count = [&](map<string, tuple<long, long>> ranges, const string& name) -> long {
+	function<long(map<string, tuple<long, long>>, string)> count = [&](auto ranges, const string& name) -> long {
 		if ( name == "R" ) {
 			return 0;
 		}
 
 		if ( name == "A" ) {
-			long result = 1;
-			for ( const auto& range: ranges ) {
-				const auto [lo, hi] = range.second;
-				result *= hi - lo + 1;
-			}
-			return result;
+			return accumulate(ranges.begin(), ranges.end(), 1L, [](auto lhs, auto rhs) {
+				const auto [lo, hi] = rhs.second;
+				return lhs * (hi - lo + 1);
+			});
 		}
 
 		const auto [sub_rules, fallback] = rules[name];
