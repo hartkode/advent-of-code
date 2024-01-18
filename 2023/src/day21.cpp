@@ -1,7 +1,5 @@
-#include <cstddef>
 #include <fstream>
 #include <iostream>
-#include <queue>
 #include <set>
 #include <string>
 #include <vector>
@@ -56,35 +54,20 @@ find_neighbours(position pos, const vector<string>& lines)
 }
 
 size_t
-count(vector<string> lines, position start, size_t rounds)
+count(const vector<string>& lines, position start, size_t rounds)
 {
-	queue<position> positions;
+	set<position> positions;
 	positions.emplace(start);
 
-	size_t sum = 0;
 	for ( size_t round = 0; round != rounds; ++round ) {
-		set<position> next_positions;
-
-		sum = 0;
-		while ( !positions.empty() ) {
-			const auto [curr_row, curr_col] = positions.front();
-			lines[curr_row][curr_col]       = '.';
-
-			const auto neighbours = find_neighbours(positions.front(), lines);
-			positions.pop();
-
-			for ( const auto& [row, col]: neighbours ) {
-				lines[row][col] = 'O';
-				next_positions.emplace(row, col);
-				++sum;
-			}
+		set<position> new_positions;
+		for ( const auto& position: positions ) {
+			const auto neighbours = find_neighbours(position, lines);
+			new_positions.insert(neighbours.begin(), neighbours.end());
 		}
-
-		for ( const auto& position: next_positions ) {
-			positions.emplace(position);
-		}
+		positions = std::move(new_positions);
 	}
-	return sum;
+	return positions.size();
 }
 
 void
