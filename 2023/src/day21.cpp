@@ -38,6 +38,9 @@ find_neighbours(position pos, const vector<string>& lines)
 {
 	static const vector<position> movements = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
 
+	const auto height = lines.size();
+	const auto width  = lines[0].size();
+
 	set<position> neighbours;
 	const auto [row, col] = pos;
 
@@ -45,7 +48,7 @@ find_neighbours(position pos, const vector<string>& lines)
 		const auto nrow = row + drow;
 		const auto ncol = col + dcol;
 
-		if ( nrow < lines.size() && ncol < lines[0].size() && (lines[nrow][ncol] == '.' || lines[nrow][ncol] == 'S') ) {
+		if ( nrow < height && ncol < width && lines[nrow][ncol] != '#' ) {
 			neighbours.emplace(nrow, ncol);
 		}
 	}
