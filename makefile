@@ -12,6 +12,9 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 2015/bin/%: 2015/src/%.cpp | 2015/bin
 	c++ $(CPPFLAGS) $^ -o $@
 
+2015/bin/day04: 2015/src/day04.cpp | 2015/bin
+	c++ $(CPPFLAGS) $^ -lmd -o $@
+
 # 2020
 2020/bin/%: 2020/src/%.cpp | 2020/bin
 	c++ $(CPPFLAGS) $^ -o $@
@@ -28,6 +31,6 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 	c++ $(CPPFLAGS) -Wno-sign-conversion -I/usr/local/include $^ -L/usr/local/lib -lz3 -o $@
 
 clean:
-	rm -rf 2020/bin 2022/bin 2023/bin
+	rm -rf 2015/bin 2020/bin 2022/bin 2023/bin
 
 .PHONY: all clean
