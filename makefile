@@ -1,11 +1,16 @@
 include config.mk
 
-all: $(patsubst 2020/src/%.cpp,2020/bin/%,$(wildcard 2020/src/*.cpp)) \
+all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
+	$(patsubst 2020/src/%.cpp,2020/bin/%,$(wildcard 2020/src/*.cpp)) \
 	$(patsubst 2022/src/%.cpp,2022/bin/%,$(wildcard 2022/src/*.cpp)) \
 	$(patsubst 2023/src/%.cpp,2023/bin/%,$(wildcard 2023/src/*.cpp))
 
 %/bin:
 	mkdir -p $@
+
+# 2015
+2015/bin/%: 2015/src/%.cpp | 2015/bin
+	c++ $(CPPFLAGS) $^ -o $@
 
 # 2020
 2020/bin/%: 2020/src/%.cpp | 2020/bin
