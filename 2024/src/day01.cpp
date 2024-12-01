@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <tuple>
 #include <vector>
 using namespace std;
@@ -39,8 +40,7 @@ part1(const vector<tuple<long, long>>& data)
 
 	long total_distance = 0;
 	for ( size_t i = 0; i != lefts.size(); ++i ) {
-		long distance = abs(lefts[i] - rights[i]);
-		total_distance += distance;
+		total_distance += abs(lefts[i] - rights[i]);
 	}
 	cout << total_distance << endl;
 }
@@ -56,10 +56,9 @@ part2(const vector<tuple<long, long>>& data)
 		rights[rhs]++;
 	}
 
-	long score = 0;
-	for ( const auto& lhs: lefts ) {
-		score += lhs * rights[lhs];
-	}
+	auto score = accumulate(lefts.begin(), lefts.end(), 0, [&](auto init, auto lhs) {
+		return init + lhs * rights[lhs];
+	});
 	cout << score << endl;
 }
 
