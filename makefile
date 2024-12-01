@@ -3,7 +3,8 @@ include config.mk
 all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 	$(patsubst 2020/src/%.cpp,2020/bin/%,$(wildcard 2020/src/*.cpp)) \
 	$(patsubst 2022/src/%.cpp,2022/bin/%,$(wildcard 2022/src/*.cpp)) \
-	$(patsubst 2023/src/%.cpp,2023/bin/%,$(wildcard 2023/src/*.cpp))
+	$(patsubst 2023/src/%.cpp,2023/bin/%,$(wildcard 2023/src/*.cpp)) \
+	$(patsubst 2024/src/%.cpp,2024/bin/%,$(wildcard 2024/src/*.cpp))
 
 %/bin:
 	mkdir -p $@
@@ -30,7 +31,11 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 2023/bin/day24: 2023/src/day24.cpp | 2023/bin
 	c++ $(CPPFLAGS) -Wno-sign-conversion -I/usr/local/include $^ -L/usr/local/lib -lz3 -o $@
 
+# 2024
+2024/bin/%: 2024/src/%.cpp | 2024/bin
+	c++ $(CPPFLAGS) $^ -o $@
+
 clean:
-	rm -rf 2015/bin 2020/bin 2022/bin 2023/bin
+	rm -rf 2015/bin 2020/bin 2022/bin 2023/bin 2024/bin
 
 .PHONY: all clean
