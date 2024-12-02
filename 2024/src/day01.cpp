@@ -6,6 +6,7 @@
 #include <numeric>
 #include <tuple>
 #include <vector>
+#include <ranges>
 using namespace std;
 
 vector<tuple<long, long>>
@@ -35,8 +36,8 @@ part1(const vector<tuple<long, long>>& data)
 		rights.emplace_back(rhs);
 	}
 
-	sort(lefts.begin(), lefts.end());
-	sort(rights.begin(), rights.end());
+	ranges::sort(lefts);
+	ranges::sort(rights);
 
 	long total_distance = 0;
 	for ( size_t i = 0; i != lefts.size(); ++i ) {
