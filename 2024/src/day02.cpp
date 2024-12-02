@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -12,11 +11,11 @@ read_file(string_view filename)
 	fstream              input{ filename };
 	vector<vector<long>> lines;
 
-	auto split = [](const string& str) {
-		stringstream sstr{ str };
+	auto split = [](const string& line) {
+		stringstream line_stream{ line };
 		vector<long> values;
 
-		for ( long value = 0; sstr >> value; ) {
+		for ( long value = 0; line_stream >> value; ) {
 			values.emplace_back(value);
 		}
 		return values;
@@ -25,7 +24,6 @@ read_file(string_view filename)
 	for ( string line; getline(input, line); ) {
 		lines.emplace_back(split(line));
 	}
-
 	return lines;
 }
 
@@ -43,6 +41,19 @@ is_safe(const vector<long>& values)
 	return all_positive || all_negative;
 }
 
+bool
+is_real_safe(const vector<long>& values)
+{
+	for ( size_t i = 0; i != values.size(); ++i ) {
+		auto values_copy = values;
+		values_copy.erase(values_copy.begin() + ptrdiff_t(i));
+		if ( is_safe(values_copy) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void
 part1(const vector<vector<long>>& lines)
 {
@@ -52,19 +63,7 @@ part1(const vector<vector<long>>& lines)
 void
 part2(const vector<vector<long>>& lines)
 {
-	long safe_count = 0;
-	for ( const auto& line: lines ) {
-		auto         safe = false;
-		for ( size_t i = 0; i != line.size(); ++i ) {
-			auto copy = line;
-			copy.erase(copy.begin() + ptrdiff_t(i));
-			safe |= is_safe(copy);
-		}
-		if ( safe ) {
-			++safe_count;
-		}
-	}
-	cout << safe_count << endl;
+	cout << ranges::count_if(lines, is_real_safe) << endl;
 }
 
 int
