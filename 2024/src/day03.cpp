@@ -9,7 +9,7 @@ string
 read_file(string_view filename)
 {
 	fstream input{ filename };
-	return { istream_iterator<char>{ input }, {} };
+	return { istreambuf_iterator<char>{ input }, {} };
 }
 
 void
@@ -29,16 +29,16 @@ part2(const string& data)
 {
 	static const regex pattern{ R"(do\(\)|don't\(\)|mul\((\d{1,3}),(\d{1,3})\))" };
 
-	long sum   = 0;
-	bool state = true;
+	long sum     = 0;
+	bool enabled = true;
 	for ( auto it = sregex_iterator{ data.begin(), data.end(), pattern }; it != sregex_iterator{}; ++it ) {
 		if ( it->str() == "do()" ) {
-			state = true;
+			enabled = true;
 		}
 		else if ( it->str() == "don't()" ) {
-			state = false;
+			enabled = false;
 		}
-		else if ( state ) {
+		else if ( enabled ) {
 			sum += stol((*it)[1]) * stol((*it)[2]);
 		}
 	}
