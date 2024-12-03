@@ -15,14 +15,11 @@ read_file(string_view filename)
 void
 part1(const string& data)
 {
-	static const regex pattern(R"(mul\(\d{1,3},\d{1,3}\))");
+	static const regex pattern{ R"(mul\((\d{1,3}),(\d{1,3})\))" };
 
 	long sum = 0;
-	for ( auto it = sregex_iterator(data.begin(), data.end(), pattern); it != sregex_iterator(); ++it ) {
-		long lhs = 0;
-		long rhs = 0;
-		sscanf(it->str().c_str(), "mul(%ld,%ld)", &lhs, &rhs);
-		sum += lhs * rhs;
+	for ( auto it = sregex_iterator{ data.begin(), data.end(), pattern }; it != sregex_iterator{}; ++it ) {
+		sum += stol((*it)[1]) * stol((*it)[2]);
 	}
 	cout << sum << endl;
 }
@@ -30,11 +27,11 @@ part1(const string& data)
 void
 part2(const string& data)
 {
-	static const regex pattern(R"(do\(\)|don't\(\)|mul\(\d{1,3},\d{1,3}\))");
+	static const regex pattern{ R"(do\(\)|don't\(\)|mul\((\d{1,3}),(\d{1,3})\))" };
 
 	long sum   = 0;
 	bool state = true;
-	for ( auto it = sregex_iterator(data.begin(), data.end(), pattern); it != sregex_iterator(); ++it ) {
+	for ( auto it = sregex_iterator{ data.begin(), data.end(), pattern }; it != sregex_iterator{}; ++it ) {
 		if ( it->str() == "do()" ) {
 			state = true;
 		}
@@ -42,10 +39,7 @@ part2(const string& data)
 			state = false;
 		}
 		else if ( state ) {
-			long lhs = 0;
-			long rhs = 0;
-			sscanf(it->str().c_str(), "mul(%ld,%ld)", &lhs, &rhs);
-			sum += lhs * rhs;
+			sum += stol((*it)[1]) * stol((*it)[2]);
 		}
 	}
 	cout << sum << endl;
