@@ -57,32 +57,14 @@ part2(map<tuple<size_t, size_t>, char> data, size_t size)
 	long count = 0;
 	for ( size_t y = 0; y != size; ++y ) {
 		for ( size_t x = 0; x != size; ++x ) {
-			if ( data[{ x, y }] == 'A' &&
-			     data[{ x - 1, y - 1 }] == 'M' &&
-			     data[{ x - 1, y + 1 }] == 'M' &&
-			     data[{ x + 1, y - 1 }] == 'S' &&
-			     data[{ x + 1, y + 1 }] == 'S' ) {
-				++count;
-			}
-			if ( data[{ x, y }] == 'A' &&
-			     data[{ x - 1, y - 1 }] == 'S' &&
-			     data[{ x - 1, y + 1 }] == 'M' &&
-			     data[{ x + 1, y - 1 }] == 'S' &&
-			     data[{ x + 1, y + 1 }] == 'M' ) {
-				++count;
-			}
-			if ( data[{ x, y }] == 'A' &&
-			     data[{ x - 1, y - 1 }] == 'S' &&
-			     data[{ x - 1, y + 1 }] == 'S' &&
-			     data[{ x + 1, y - 1 }] == 'M' &&
-			     data[{ x + 1, y + 1 }] == 'M' ) {
-				++count;
-			}
-			if ( data[{ x, y }] == 'A' &&
-			     data[{ x - 1, y - 1 }] == 'M' &&
-			     data[{ x - 1, y + 1 }] == 'S' &&
-			     data[{ x + 1, y - 1 }] == 'M' &&
-			     data[{ x + 1, y + 1 }] == 'S' ) {
+			string str;
+			str += data[{ x, y }];
+			str += data[{ x - 1, y - 1 }];
+			str += data[{ x - 1, y + 1 }];
+			str += data[{ x + 1, y - 1 }];
+			str += data[{ x + 1, y + 1 }];
+
+			if ( str == "AMMSS" || str == "ASMSM" || str == "ASSMM" || str == "AMSMS" ) {
 				++count;
 			}
 		}
