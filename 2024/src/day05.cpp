@@ -40,6 +40,7 @@ read_file(string_view filename)
 	for ( string line; getline(input, line); ) {
 		pages.emplace_back(split(line));
 	}
+
 	return { rules, pages };
 }
 
@@ -56,10 +57,10 @@ is_valid(const vector<tuple<long, long>>& rules, const vector<long>& page)
 			return get<0>(rule) == num;
 		};
 
-		for ( auto it = find_if(rules.begin(), rules.end(), pred); it != rules.end(); it = find_if(it + 1, rules.end(), pred) ) {
-			const auto foo = get<1>(*it);
-
-			if ( processed.contains(foo) ) {
+		for ( auto it = find_if(rules.begin(), rules.end(), pred);
+		      it != rules.end();
+		      it = find_if(it + 1, rules.end(), pred) ) {
+			if ( processed.contains(get<1>(*it)) ) {
 				invalid = true;
 			}
 		}
@@ -84,13 +85,15 @@ part2(const vector<tuple<long, long>>& rules, const vector<vector<long>>& pages)
 {
 	long sum = 0;
 	for ( auto page: pages ) {
-		if ( !is_valid(rules, page) ) {
-			ranges::sort(page, [&](auto lhs, auto rhs) -> bool {
-				return ranges::find(rules, make_tuple(lhs, rhs)) != rules.end();
-			});
-
-			sum += page.at(page.size() / 2);
+		if ( is_valid(rules, page) ) {
+			continue;
 		}
+
+		ranges::sort(page, [&rules](auto lhs, auto rhs) {
+			return ranges::find(rules, make_tuple(lhs, rhs)) != rules.end();
+		});
+
+		sum += page.at(page.size() / 2);
 	}
 	cout << sum << endl;
 }
