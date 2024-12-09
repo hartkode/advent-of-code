@@ -1,7 +1,10 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <list>
+#include <ranges>
 #include <string>
+#include <vector>
 using namespace std;
 
 vector<int>
@@ -50,9 +53,94 @@ part1(const vector<int>& data)
 	cout << sum << endl;
 }
 
+void
+part2(const vector<int>& data)
+{
+	// id, pos, len
+	vector<tuple<int, size_t, size_t>> files;
+
+	// pos, len
+	list<tuple<size_t, size_t>> spaces;
+
+	for ( size_t i = 0; i != data.size(); ) {
+		// skip space
+		auto j = i;
+		while ( j != data.size() && data.at(j) == -1 ) {
+			++j;
+		}
+		if ( i != j ) {
+			spaces.emplace_back(i, j - i);
+		}
+		i = j;
+
+		while ( j != data.size() && data.at(i) == data.at(j) ) {
+			++j;
+		}
+		if ( i != j ) {
+			files.emplace_back(data.at(i), i, j - i);
+		}
+		i = j;
+	}
+
+	for ( auto& file: std::ranges::reverse_view(files) ) {
+		for ( auto it = spaces.begin(); it != spaces.end(); ++it ) {
+			if ( get<0>(*it) >= get<1>(file) ) {
+				spaces.erase(it, spaces.end());
+				break;
+			}
+			if ( get<1>(*it) >= get<2>(file) ) {
+				// update pos
+				get<1>(file) = get<0>(*it);
+
+				// update space len
+				get<1>(*it) -= get<2>(file);
+
+				// update space pos
+				get<0>(*it) += get<2>(file);
+
+				if ( get<1>(*it) == 0 ) {
+					spaces.erase(it);
+				}
+				break;
+			}
+		}
+	}
+
+	/*
+	for ( auto& file: std::ranges::reverse_view(files) ) {
+	    auto space = ranges::find_if(spaces, [&](const auto& space) -> bool {
+	        return get<1>(space) >= get<2>(file)  && get<0>(space) < get<1>(file);
+	    });
+	    if ( space != spaces.end() ) {
+	        // update pos
+	        get<1>(file) = get<0>(*space);
+
+	        // update space len
+	        get<1>(*space) -= get<2>(file);
+
+	        // update space pos
+	        get<0>(*space) += get<2>(file);
+
+	        if ( get<1>(*space) == 0 ) {
+	            spaces.erase(space);
+	        }
+	    }
+	}
+	*/
+
+	long sum = 0;
+	for ( const auto& [fid, pos, size]: files ) {
+		for ( size_t x = pos; x != pos + size; ++x ) {
+			sum += long(x) * fid;
+		}
+	}
+	cout << sum << endl;
+}
+
 int
 main()
 {
 	auto data = read_file("data/day09.txt");
 	part1(data);
+	part2(data);
 }
