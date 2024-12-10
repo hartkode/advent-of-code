@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <queue>
 #include <set>
 #include <string>
@@ -33,102 +34,96 @@ neighbors(pos_type pos)
 	return { { x - 1, y }, { x, y - 1 }, { x + 1, y }, { x, y + 1 } };
 }
 
-size_t
-bfs(const map<pos_type, int>& data, pos_type start_pos)
+vector<pos_type>
+get_starts(const map<pos_type, int>& data)
 {
-	size_t peaks = 0;
-
-	set<pos_type>   seen;
-	queue<pos_type> queue;
-
-	queue.emplace(start_pos);
-	seen.emplace(start_pos);
-
-	while ( !queue.empty() ) {
-		auto pos = queue.front();
-		queue.pop();
-
-		if ( data.at(pos) == 9 ) {
-			++peaks;
-			continue;
-		}
-
-		for ( const auto& neighbor: neighbors(pos) ) {
-			if ( !data.contains(neighbor) ||
-			     seen.contains(neighbor) ||
-			     data.at(neighbor) != data.at(pos) + 1 ) {
-				continue;
-			}
-
-			queue.emplace(neighbor);
-			seen.insert(neighbor);
+	vector<pos_type> starts;
+	for ( const auto& [pos, value]: data ) {
+		if ( value == 0 ) {
+			starts.push_back(pos);
 		}
 	}
-	return peaks;
+	return starts;
+}
+
+template<typename BFS>
+size_t
+solve(const map<pos_type, int>& data, BFS bfs)
+{
+	auto starts = get_starts(data);
+	return accumulate(starts.begin(), starts.end(), 0U, [&](auto init, auto start) { return init + bfs(data, start); });
 }
 
 void
 part1(const map<pos_type, int>& data)
 {
-	vector<pos_type> starts;
-	for ( const auto& [pos, value]: data ) {
-		if ( value == 0 ) {
-			starts.push_back(pos);
-		}
-	}
+	auto bfs = [](const map<pos_type, int>& data, pos_type start_pos) -> size_t {
+		size_t score = 0;
 
-	size_t sum = 0;
-	for ( const auto& start: starts ) {
-		sum += bfs(data, start);
-	}
-	cout << sum << endl;
-}
+		set<pos_type>   seen;
+		queue<pos_type> queue;
 
-size_t
-bfs2(const map<pos_type, int>& data, pos_type start_pos)
-{
-	size_t paths = 0;
+		queue.emplace(start_pos);
+		seen.emplace(start_pos);
 
-	queue<pos_type> queue;
+		while ( !queue.empty() ) {
+			auto pos = queue.front();
+			queue.pop();
 
-	queue.push(start_pos);
-
-	while ( !queue.empty() ) {
-		auto pos = queue.front();
-		queue.pop();
-
-		if ( data.at(pos) == 9 ) {
-			++paths;
-			continue;
-		}
-
-		for ( const auto& neighbor: neighbors(pos) ) {
-			if ( !data.contains(neighbor) ||
-			     data.at(neighbor) != data.at(pos) + 1 ) {
+			if ( data.at(pos) == 9 ) {
+				++score;
 				continue;
 			}
 
-			queue.emplace(neighbor);
+			for ( const auto& neighbor: neighbors(pos) ) {
+				if ( !data.contains(neighbor) ||
+				     seen.contains(neighbor) ||
+				     data.at(neighbor) != data.at(pos) + 1 ) {
+					continue;
+				}
+
+				queue.emplace(neighbor);
+				seen.insert(neighbor);
+			}
 		}
-	}
-	return paths;
+		return score;
+	};
+
+	cout << solve(data, bfs) << endl;
 }
 
 void
 part2(const map<pos_type, int>& data)
 {
-	vector<pos_type> starts;
-	for ( const auto& [pos, value]: data ) {
-		if ( value == 0 ) {
-			starts.push_back(pos);
-		}
-	}
+	auto bfs = [](const map<pos_type, int>& data, pos_type start_pos) -> size_t {
+		size_t score = 0;
 
-	size_t sum = 0;
-	for ( const auto& start: starts ) {
-		sum += bfs2(data, start);
-	}
-	cout << sum << endl;
+		queue<pos_type> queue;
+
+		queue.push(start_pos);
+
+		while ( !queue.empty() ) {
+			auto pos = queue.front();
+			queue.pop();
+
+			if ( data.at(pos) == 9 ) {
+				++score;
+				continue;
+			}
+
+			for ( const auto& neighbor: neighbors(pos) ) {
+				if ( !data.contains(neighbor) ||
+				     data.at(neighbor) != data.at(pos) + 1 ) {
+					continue;
+				}
+
+				queue.emplace(neighbor);
+			}
+		}
+		return score;
+	};
+
+	cout << solve(data, bfs) << endl;
 }
 
 int
