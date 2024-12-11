@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <map>
+#include <numeric>
 #include <vector>
 using namespace std;
 
@@ -37,9 +39,45 @@ part1(vector<long> data)
 	cout << data.size() << endl;
 }
 
+void
+part2(const vector<long>& data)
+{
+	static const int MAX_DEPTH = 75;
+
+	map<tuple<long, int>, long> cache;
+
+	function<long(long, int)> count = [&](long value, int depth) -> long {
+		if ( cache.contains({ value, depth }) ) {
+			return cache[{ value, depth }];
+		}
+
+		if ( depth == MAX_DEPTH ) {
+			return 1;
+		}
+
+		if ( value == 0 ) {
+			return cache[{ value, depth }] = count(1, depth + 1);
+		}
+
+		auto str = to_string(value);
+		if ( str.size() % 2 == 0 ) {
+			auto len = str.size() / 2;
+			auto lhs = stol(str.substr(0, len));
+			auto rhs = stol(str.substr(len));
+
+			return cache[{ value, depth }] = count(lhs, depth + 1) + count(rhs, depth + 1);
+		}
+
+		return cache[{ value, depth }] = count(value * 2024, depth + 1);
+	};
+
+	cout << accumulate(data.begin(), data.end(), 0L, [&](long init, long value) { return init + count(value, 0); }) << endl;
+}
+
 int
 main()
 {
 	auto data = read_file("data/day11.txt");
 	part1(data);
+	part2(data);
 }
