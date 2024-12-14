@@ -35,6 +35,9 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 2024/bin/%: 2024/src/%.cpp | 2024/bin
 	c++ $(CPPFLAGS) $^ -o $@
 
+2024/bin/day13-z3: 2024/src/day13-z3.cpp | 2024/bin
+	c++ $(CPPFLAGS) $^ -L/usr/local/lib -lz3 -o $@
+
 clean:
 	rm -rf 2015/bin 2020/bin 2022/bin 2023/bin 2024/bin
 
