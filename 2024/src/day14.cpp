@@ -1,6 +1,8 @@
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <queue>
 #include <regex>
 #include <set>
 #include <tuple>
@@ -166,6 +168,66 @@ part2_alternative(vector<tuple<pos_type, velo_type>> robots, long width, long he
 	}
 }
 
+constexpr vector<pos_type>
+neighbors(pos_type pos)
+{
+	const auto [x, y] = pos;
+	return { { x - 1, y }, { x, y - 1 }, { x + 1, y }, { x, y + 1 } };
+}
+
+size_t
+flood_fill(const vector<tuple<pos_type, velo_type>>& robots)
+{
+	set<pos_type> positions;
+	for ( const auto& [pos, velo]: robots ) {
+		positions.insert(pos);
+	}
+
+	size_t max_seen = 0;
+	for ( const auto& start: positions ) {
+		set<pos_type> seen;
+
+		queue<pos_type> queue;
+		queue.push(start);
+
+		while ( !queue.empty() ) {
+			auto pos = queue.front();
+			queue.pop();
+
+			if ( seen.contains(pos) ) {
+				continue;
+			}
+
+			seen.insert(pos);
+
+			for ( const auto& neighbor: neighbors(pos) ) {
+				if ( positions.contains(neighbor) ) {
+					queue.push(neighbor);
+				}
+			}
+		}
+		max_seen = max(max_seen, seen.size());
+	}
+
+	return max_seen;
+}
+
+void
+part2_flood_fill(vector<tuple<pos_type, velo_type>> robots, long width, long height)
+{
+	size_t max_count    = 0;
+	long   second_found = 0;
+	for ( long second = 0; second != 100000; ++second ) {
+		auto count = flood_fill(robots);
+		if ( count > max_count ) {
+			max_count    = count;
+			second_found = second;
+		}
+		move(robots, width, height);
+	}
+	cout << second_found << endl;
+}
+
 int
 main()
 {
@@ -177,5 +239,6 @@ main()
 	part1(robots, 101, 103);
 	part2(robots, 101, 103);
 	part2_alternative(robots, 101, 103);
+	part2_flood_fill(robots, 101, 103);
 #endif
 }
