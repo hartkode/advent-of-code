@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <optional>
 #include <set>
 #include <string>
@@ -50,6 +51,7 @@ read_file(string_view filename)
 	return { room, boxes, movements, start };
 }
 
+/*
 void
 print(const room_type& room, const boxes_type& boxes, const pos_type& pos)
 {
@@ -72,6 +74,7 @@ print(const room_type& room, const boxes_type& boxes, const pos_type& pos)
 	}
 	cout << endl;
 }
+*/
 
 optional<boxes_type>
 can_move(const room_type& room, const boxes_type& boxes, pos_type start, pos_type direction) // NOLINT
@@ -114,26 +117,19 @@ part1(const puzzle_type& puzzle)
 			get<0>(start) += dx;
 			get<1>(start) += dy;
 
-			boxes_type new_boxes;
-			for ( const auto& box: boxes ) {
-				if ( bitw->contains(box) ) {
-					const auto [x, y] = box;
-					new_boxes.emplace(x + dx, y + dy);
-					bitw->erase(box);
-				}
-				else {
-					new_boxes.insert(box);
-				}
+			for ( const auto& box: bitw.value() ) {
+				boxes.erase(box);
 			}
-			boxes = new_boxes;
+
+			for ( auto [x, y]: bitw.value() ) {
+				boxes.emplace(x + dx, y + dy);
+			}
 		}
 	}
 
-	size_t sum = 0;
-	for (const auto& [x, y]: boxes) {
-		sum += x + 100 * y;
-	}
-	cout << sum << endl;
+	cout << accumulate(boxes.begin(), boxes.end(), 0UL, [](auto init, const auto& box) {
+		return init + get<0>(box) + 100 * get<1>(box);
+	}) << endl;
 }
 
 int
