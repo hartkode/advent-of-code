@@ -55,43 +55,26 @@ read_file(string_view filename)
 }
 
 puzzle2_type
-read_file2(string_view filename)
+convert(const puzzle_type& puzzle)
 {
-	fstream     input{ filename };
-	room_type   room;
-	boxes2_type boxes;
-	string      movements;
-	pos_type    start;
+	const auto& [room, boxes, movements, start] = puzzle;
 
-	size_t yPos = 0;
-	for ( string line; getline(input, line); ) {
-		if ( line.empty() ) {
-			continue;
-		}
-
-		if ( line[0] == '#' ) {
-			for ( size_t xPos = 0; xPos != line.size(); ++xPos ) {
-				auto chr = line.at(xPos);
-				if ( chr == '#' ) {
-					room.emplace(xPos * 2, yPos);
-					room.emplace(xPos * 2 + 1, yPos);
-				}
-				else if ( chr == 'O' ) {
-					boxes.insert({ pos_type(xPos * 2, yPos), true });
-					boxes.insert({ pos_type(xPos * 2 + 1, yPos), false });
-				}
-				else if ( chr == '@' ) {
-					start = { xPos * 2, yPos };
-				}
-			}
-			++yPos;
-		}
-		else {
-			movements += line;
-		}
+	room_type room2;
+	for ( const auto& [x, y]: room ) {
+		room2.emplace(x * 2, y);
+		room2.emplace(x * 2 + 1, y);
 	}
 
-	return { room, boxes, movements, start };
+	boxes2_type boxes2;
+	for ( const auto& [x, y]: boxes ) {
+		boxes2.insert({ pos_type{ x * 2, y }, true });
+		boxes2.insert({ pos_type{ x * 2 + 1, y }, false });
+	}
+
+	const auto& [x, y] = start;
+	pos_type start2{ x * 2, y };
+
+	return { room2, boxes2, movements, start2 };
 }
 
 void
@@ -181,7 +164,7 @@ can_move(const room_type& room, const boxes_type& boxes, pos_type start, pos_typ
 void
 part1(const puzzle_type& puzzle)
 {
-	map<char, pos_type> deltas = {
+	const map<char, pos_type> deltas = {
 		{ '<', { -1, 0 } }, // Left
 		{ '^', { 0, -1 } }, // Up
 		{ '>', { 1, 0 } },  // Right
@@ -191,7 +174,7 @@ part1(const puzzle_type& puzzle)
 	auto [room, boxes, movements, start] = puzzle;
 
 	for ( auto chr: movements ) {
-		const auto delta = deltas[chr];
+		const auto delta = deltas.at(chr);
 		if ( auto bitw = can_move(room, boxes, start, delta) ) {
 			const auto [dx, dy] = delta;
 
@@ -228,12 +211,13 @@ get_both_parts(const boxes2_type& boxes, pos_type pos)
 optional<boxes2_type>
 can_move(const room_type& room, const boxes2_type& all_boxes, pos_type start, pos_type direction) // NOLINT
 {
-	function<optional<boxes2_type>(const boxes2_type&, size_t)> can_move_up_down = [&room, &all_boxes, &can_move_up_down](const boxes2_type& boxes, size_t dy) -> optional<boxes2_type> {
+	function<optional<boxes2_type>(const boxes2_type&, size_t)> can_move_up_down =
+	    [&room, &all_boxes, &can_move_up_down](const boxes2_type& boxes, const size_t dy) -> optional<boxes2_type> {
 		boxes2_type candidates;
 
 		for ( const auto& [pos, b]: boxes ) {
 			const auto [x, y] = pos;
-			pos_type try_pos(x, y + dy);
+			const pos_type try_pos(x, y + dy);
 
 			if ( room.contains(try_pos) ) {
 				return nullopt;
@@ -290,7 +274,7 @@ can_move(const room_type& room, const boxes2_type& all_boxes, pos_type start, po
 void
 part2(const puzzle2_type& puzzle)
 {
-	map<char, pos_type> deltas = {
+	const map<char, pos_type> deltas = {
 		{ '<', { -1, 0 } }, // Left
 		{ '^', { 0, -1 } }, // Up
 		{ '>', { 1, 0 } },  // Right
@@ -300,7 +284,7 @@ part2(const puzzle2_type& puzzle)
 	auto [room, boxes, movements, start] = puzzle;
 
 	for ( auto chr: movements ) {
-		const auto delta = deltas[chr];
+		const auto delta = deltas.at(chr);
 		if ( auto bitw = can_move(room, boxes, start, delta) ) {
 			const auto [dx, dy] = delta;
 
@@ -320,15 +304,15 @@ part2(const puzzle2_type& puzzle)
 
 	cout << accumulate(boxes.begin(), boxes.end(), 0UL, [](auto init, const auto& box) {
 		const auto& [pos, b] = box;
-		if ( !b ) {
-			return init;
-		}
-		return init + get<0>(pos) + 100 * get<1>(pos);
+		const auto [x, y]    = pos;
+		return init + (x + 100 * y) * b;
 	}) << endl;
 }
+
 int
 main()
 {
-	part1(read_file("data/day15.txt"));
-	part2(read_file2("data/day15.txt"));
+	const auto puzzle = read_file("data/day15.txt");
+	part1(puzzle);
+	part2(convert(puzzle));
 }

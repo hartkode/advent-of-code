@@ -106,28 +106,6 @@ part2(const vector<int>& data)
 		}
 	}
 
-	/*
-	for ( auto& file: std::ranges::reverse_view(files) ) {
-	    auto space = ranges::find_if(spaces, [&](const auto& space) -> bool {
-	        return get<1>(space) >= get<2>(file)  && get<0>(space) < get<1>(file);
-	    });
-	    if ( space != spaces.end() ) {
-	        // update pos
-	        get<1>(file) = get<0>(*space);
-
-	        // update space len
-	        get<1>(*space) -= get<2>(file);
-
-	        // update space pos
-	        get<0>(*space) += get<2>(file);
-
-	        if ( get<1>(*space) == 0 ) {
-	            spaces.erase(space);
-	        }
-	    }
-	}
-	*/
-
 	long sum = 0;
 	for ( const auto& [fid, pos, size]: files ) {
 		for ( size_t x = pos; x != pos + size; ++x ) {
