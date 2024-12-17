@@ -57,10 +57,10 @@ read_file(string_view filename)
 	return { registers, program };
 }
 
-void
-part1(const tuple<registers_type, program_type>& data)
+vector<unsigned long>
+run(registers_type registers, const program_type& program)
 {
-	auto [registers, program] = data;
+	vector<unsigned long> out;
 
 	for ( unsigned long ip = 0; ip < program.size(); ) {
 		const auto opcode  = program.at(ip++);
@@ -86,7 +86,7 @@ part1(const tuple<registers_type, program_type>& data)
 			registers['B'] ^= registers['C'];
 			break;
 		case 5:
-			cout << (value & 7) << ',';
+			out.push_back(value & 7);
 			break;
 		case 6:
 			registers['B'] = registers['A'] >> value;
@@ -95,11 +95,56 @@ part1(const tuple<registers_type, program_type>& data)
 			registers['C'] = registers['A'] >> value;
 			break;
 		default:
-			cout << "Error" << endl;
-			return;
+			throw runtime_error("Error");
 		}
 	}
+	return out;
+}
+
+void
+part1(const tuple<registers_type, program_type>& data)
+{
+	auto [registers, program] = data;
+
+	auto result = run(registers, program);
+
+	copy(result.begin(), result.end(), ostream_iterator<unsigned long>(cout, ","));
 	cout << endl;
+}
+
+optional<unsigned long>
+find_register_a(const registers_type& registers, const program_type& program, size_t pos)
+{
+	if ( pos > program.size() ) {
+		return registers.at('A');
+	}
+
+	for ( unsigned long i = 0; i != 8; ++i ) {
+		auto registers_copy = registers;
+
+		registers_copy['A'] <<= 3UL;
+		registers_copy['A'] |= i;
+
+		const auto try_run = run(registers_copy, program);
+
+		if ( try_run.front() == program[program.size() - pos] ) {
+			if ( auto result = find_register_a(registers_copy, program, pos + 1) ) {
+				return *result;
+			}
+		}
+	}
+	return nullopt;
+}
+
+void
+part2(const tuple<registers_type, program_type>& data)
+{
+	auto [registers, program] = data;
+
+	registers['A'] = 0;
+	if ( auto result = find_register_a(registers, program, 1) ) {
+		cout << *result << endl;
+	}
 }
 
 int
@@ -107,4 +152,5 @@ main()
 {
 	auto data = read_file("data/day17.txt");
 	part1(data);
+	part2(data);
 }
