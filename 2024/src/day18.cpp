@@ -26,8 +26,8 @@ read_file(string_view filename)
 	return data;
 }
 
-void
-part1(const vector<pos_type>& data, long size)
+optional<long>
+bfs(const vector<pos_type>& data, long size)
 {
 	set<pos_type> stones{ data.begin(), data.end() };
 
@@ -44,8 +44,7 @@ part1(const vector<pos_type>& data, long size)
 		const auto [x, y] = pos;
 
 		if ( x == size && y == size ) {
-			cout << distance << endl;
-			return;
+			return distance;
 		}
 
 		if ( x < 0 || y < 0 || x > size || y > size ) {
@@ -65,11 +64,45 @@ part1(const vector<pos_type>& data, long size)
 			queue.push({ { nx, ny }, distance + 1 });
 		}
 	}
+	return nullopt;
+}
+
+void
+part1(const vector<pos_type>& data, long size)
+{
+	if ( auto result = bfs(data, size) ) {
+		cout << *result << endl;
+	}
+}
+
+void
+part2(const vector<pos_type>& data, long size)
+{
+	for ( size_t i = 0; i != data.size(); ++i ) {
+		const vector<pos_type> foo{ data.begin(), data.begin() + ptrdiff_t(i) };
+
+		if ( !bfs(foo, size) ) {
+			const auto& [x, y] = foo.back();
+			cout << x << "," << y << endl;
+			return;
+		}
+	}
 }
 
 int
 main()
 {
+#if 0
+	const auto data = read_file("data/day18-sample1.txt");
+	const long size = 6;
+
+	part1({ data.begin(), data.begin() + 12 }, size);
+	part2(data, size);
+#else
 	const auto data = read_file("data/day18.txt");
-	part1({ data.begin(), data.begin() + 1024 }, 70);
+	const long size = 70;
+
+	part1({ data.begin(), data.begin() + 1024 }, size);
+	part2(data, size);
+#endif
 }
