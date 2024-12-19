@@ -59,9 +59,9 @@ part1(const tuple<set<string>, vector<string>>& data)
 			return cache.at(line);
 		}
 
-		for ( size_t i = 0; i != line.size(); ++i ) {
-			if ( parts.contains(line.substr(0, i + 1)) ) {
-				if ( match(line.substr(i + 1)) ) {
+		for ( const auto& part: parts ) {
+			if ( line.starts_with(part) ) {
+				if ( match(line.substr(part.size())) ) {
 					return cache[line] = true;
 				}
 			}
@@ -91,9 +91,9 @@ part2(const tuple<set<string>, vector<string>>& data)
 		}
 
 		long counter = 0;
-		for ( size_t i = 0; i != line.size(); ++i ) {
-			if ( parts.contains(line.substr(0, i + 1)) ) {
-				counter += match(line.substr(i + 1));
+		for ( const auto& part: parts ) {
+			if ( line.starts_with(part) ) {
+				counter += match(line.substr(part.size()));
 			}
 		}
 
