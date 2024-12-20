@@ -45,8 +45,6 @@ bfs(const tuple<pos_type, pos_type, set<pos_type>>& data)
 
 	map<pos_type, long> path;
 
-	set<pos_type> seen;
-
 	queue<tuple<pos_type, long>> queue;
 	queue.push({ start, 0 });
 
@@ -54,11 +52,9 @@ bfs(const tuple<pos_type, pos_type, set<pos_type>>& data)
 		auto [pos, dist] = queue.front();
 		queue.pop();
 
-		if ( seen.contains(pos) ) {
+		if ( path.contains(pos) ) {
 			continue;
 		}
-		seen.insert(pos);
-
 		path[pos] = dist;
 
 		if ( pos == end ) {
@@ -67,10 +63,9 @@ bfs(const tuple<pos_type, pos_type, set<pos_type>>& data)
 
 		auto [x, y] = pos;
 		for ( const auto& new_pos: vector<pos_type>{ { x - 1, y }, { x, y - 1 }, { x + 1, y }, { x, y + 1 } } ) {
-			if ( walls.contains(new_pos) ) {
-				continue;
+			if ( !walls.contains(new_pos) ) {
+				queue.push({ new_pos, dist + 1 });
 			}
-			queue.push({ new_pos, dist + 1 });
 		}
 	}
 	return path;
@@ -92,7 +87,7 @@ part1(const tuple<pos_type, pos_type, set<pos_type>>& data)
 				continue;
 			}
 			pos_type new_pos{ x + 2 * dx, y + 2 * dy };
-			if ( path.contains(new_pos) && dist < path.at(new_pos) && path.at(new_pos) - dist >= 100 + 2 ) {
+			if ( path.contains(new_pos) && path.at(new_pos) - dist >= 100 + 2 ) {
 				++count;
 			}
 		}
@@ -110,15 +105,20 @@ part2(const tuple<pos_type, pos_type, set<pos_type>>& data)
 		auto [x, y] = pos;
 
 		for ( size_t r = 2; r != 21; ++r ) {
+			set<pos_type> candidates;
 			for ( size_t dx = 0; dx != r + 1; ++dx ) {
 				size_t dy = r - dx;
 
-				for ( const auto& new_pos: set<pos_type>{ { x + dx, y + dy }, { x - dx, y + dy }, { x + dx, y - dy }, { x - dx, y - dy } } ) {
-					if ( path.contains(new_pos) && dist < path.at(new_pos) && path.at(new_pos) - dist >= 100 + long(r) ) {
-						++count;
-					}
-				}
+				candidates.insert({ x + dx, y + dy });
+				candidates.insert({ x - dx, y + dy });
+				candidates.insert({ x + dx, y - dy });
+				candidates.insert({ x - dx, y - dy });
 			}
+
+			auto temp_dist = dist;
+			count += ranges::count_if(candidates, [&](const auto& new_pos) {
+				return path.contains(new_pos) && path.at(new_pos) - temp_dist >= 100 + long(r);
+			});
 		}
 	}
 	cout << count << endl;
