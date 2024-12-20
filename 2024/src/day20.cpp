@@ -100,9 +100,34 @@ part1(const tuple<pos_type, pos_type, set<pos_type>>& data)
 	cout << count << endl;
 }
 
+void
+part2(const tuple<pos_type, pos_type, set<pos_type>>& data)
+{
+	auto path = bfs(data);
+
+	long count = 0;
+	for ( const auto& [pos, dist]: path ) {
+		auto [x, y] = pos;
+
+		for ( size_t r = 2; r != 21; ++r ) {
+			for ( size_t dx = 0; dx != r + 1; ++dx ) {
+				size_t dy = r - dx;
+
+				for ( const auto& new_pos: set<pos_type>{ { x + dx, y + dy }, { x - dx, y + dy }, { x + dx, y - dy }, { x - dx, y - dy } } ) {
+					if ( path.contains(new_pos) && dist < path.at(new_pos) && path.at(new_pos) - dist >= 100 + long(r) ) {
+						++count;
+					}
+				}
+			}
+		}
+	}
+	cout << count << endl;
+}
+
 int
 main()
 {
 	auto data = read_file("data/day20.txt");
 	part1(data);
+	part2(data);
 }
