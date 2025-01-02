@@ -114,27 +114,12 @@ part1(const tuple<map<string, unsigned long>, map<string, tuple<string, string, 
 	cout << value << endl;
 }
 
-string
-make_wire(char chr, unsigned long num)
-{
-	static const size_t  MAX_LEN = 10;
-	array<char, MAX_LEN> tmp{};
-	snprintf(tmp.data(), tmp.size(), "%c%02lu", chr, num); // NOLINT
-	return tmp.data();
-}
-
 class RippleCarryAdder {
 public:
 	explicit RippleCarryAdder(const tuple<map<string, unsigned long>, map<string, tuple<string, string, string>>>& data)
 	    : inputs_(get<0>(data))
 	    , deps_(get<1>(data))
 	{
-	}
-
-	RippleCarryAdder(const map<string, tuple<string, string, string>>& deps, unsigned long x_value, unsigned long y_value)
-	    : deps_(deps)
-	{
-		build_inputs(x_value, y_value);
 	}
 
 	void swap_wire(const string& lhs, const string& rhs)
@@ -197,6 +182,14 @@ public:
 	}
 
 private:
+	static string make_wire(char chr, unsigned long num)
+	{
+		static const size_t  MAX_LEN = 10;
+		array<char, MAX_LEN> tmp{};
+		snprintf(tmp.data(), tmp.size(), "%c%02lu", chr, num); // NOLINT
+		return tmp.data();
+	}
+
 	void build_inputs(unsigned long x_value, unsigned long y_value)
 	{
 		inputs_.clear();
@@ -269,54 +262,50 @@ part2(const tuple<map<string, unsigned long>, map<string, tuple<string, string, 
 	set<string> solution;
 
 	for ( auto bit = 0UL; bit != MAX_BITS; ++bit ) {
-		const auto x_value = 1UL << bit; // (1UL << (bit+1)) - 1;
-		const auto y_value = 0UL << bit;
+		const auto x_value = 1UL << bit;
+		const auto y_value = 0UL;
 
 		if ( !rca.eval_z(x_value, y_value) ) {
 			return;
 		}
 
 		const auto failed_bits = rca.test(x_value, y_value);
-		if ( !failed_bits.empty() ) {
-			set<string> candidates;
-			for ( const auto& wire: failed_bits ) {
-				rca.collect(wire, candidates);
-			}
+		if ( failed_bits.empty() ) {
+			continue;
+		}
 
-			const vector<string> foo{ candidates.begin(), candidates.end() };
+		set<string> unique_candidates;
+		for ( const auto& wire: failed_bits ) {
+			rca.collect(wire, unique_candidates);
+		}
 
-			for ( auto i = foo.begin(); i != foo.end(); ++i ) {
-				for ( auto j = i + 1; j != foo.end(); ++j ) {
-					auto do_test = [&](unsigned long lhs, unsigned long rhs) -> bool {
-						RippleCarryAdder rca_tester{ data };
+		const vector<string> candidates{ unique_candidates.begin(), unique_candidates.end() };
 
-						rca_tester.swap_wire(*i, *j);
+		for ( auto i = candidates.begin(); i != candidates.end(); ++i ) {
+			for ( auto j = i + 1; j != candidates.end(); ++j ) {
+				auto do_test = [&](const tuple<unsigned long, unsigned long>& test_value) -> bool {
+					const auto [lhs, rhs] = test_value;
 
-						if ( !rca_tester.eval_z(lhs, rhs) ) {
-							return false;
-						}
-						return rca_tester.test(lhs, rhs).empty();
-					};
+					RippleCarryAdder rca_tester{ data };
 
-					if ( do_test(x_value, y_value) ) {
-						const auto x_value2 = 7UL << (bit - 1);
-						const auto y_value2 = 3UL << (bit - 1);
+					rca_tester.swap_wire(*i, *j);
 
-						if ( do_test(x_value2, y_value2) ) {
-							const auto x_value3 = 1UL << bit;
-							const auto y_value3 = 1UL << bit;
-
-							if ( do_test(x_value3, y_value3) ) {
-								const auto x_value4 = 5UL << (bit - 1);
-								const auto y_value4 = 3UL << (bit - 1);
-
-								if ( do_test(x_value4, y_value4) ) {
-									solution.insert(*i);
-									solution.insert(*j);
-								}
-							}
-						}
+					if ( !rca_tester.eval_z(lhs, rhs) ) {
+						return false;
 					}
+					return rca_tester.test(lhs, rhs).empty();
+				};
+
+				const vector<tuple<unsigned long, unsigned long>> test_values = {
+					{ x_value, y_value },
+					{ 7UL << (bit - 1), 3UL << (bit - 1) },
+					{ 1UL << bit, 1UL << bit },
+					{ 5UL << (bit - 1), 3UL << (bit - 1) }
+				};
+
+				if ( ranges::all_of(test_values, do_test) ) {
+					solution.insert(*i);
+					solution.insert(*j);
 				}
 			}
 		}
