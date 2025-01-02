@@ -1,3 +1,4 @@
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -6,6 +7,8 @@
 #include <string>
 #include <vector>
 using namespace std;
+
+static const auto MAX_BITS = 45UL;
 
 vector<string>
 split(string_view line, string_view delimiter)
@@ -24,6 +27,23 @@ split(string_view line, string_view delimiter)
 
 	res.emplace_back(line.substr(pos_start));
 	return res;
+}
+
+template<typename Container>
+string
+join(const Container& container, const string& delimiter)
+{
+	ostringstream oss;
+	auto          iter = container.begin();
+	if ( iter != container.end() ) {
+		oss << *iter;
+		++iter;
+	}
+	while ( iter != container.end() ) {
+		oss << delimiter << *iter;
+		++iter;
+	}
+	return oss.str();
 }
 
 tuple<map<string, unsigned long>, map<string, tuple<string, string, string>>>
@@ -76,9 +96,6 @@ part1(const tuple<map<string, unsigned long>, map<string, tuple<string, string, 
 		else if ( op == "OR" ) {
 			value = eval(lhs) | eval(rhs);
 		}
-		else {
-			cerr << "Das darf nicht passieren! Input: " << input << endl;
-		}
 
 		inputs[input] = value;
 
@@ -97,9 +114,220 @@ part1(const tuple<map<string, unsigned long>, map<string, tuple<string, string, 
 	cout << value << endl;
 }
 
+string
+make_wire(char chr, unsigned long num)
+{
+	static const size_t  MAX_LEN = 10;
+	array<char, MAX_LEN> tmp{};
+	snprintf(tmp.data(), tmp.size(), "%c%02lu", chr, num); // NOLINT
+	return tmp.data();
+}
+
+class RippleCarryAdder {
+public:
+	explicit RippleCarryAdder(const tuple<map<string, unsigned long>, map<string, tuple<string, string, string>>>& data)
+	    : inputs_(get<0>(data))
+	    , deps_(get<1>(data))
+	{
+	}
+
+	RippleCarryAdder(const map<string, tuple<string, string, string>>& deps, unsigned long x_value, unsigned long y_value)
+	    : deps_(deps)
+	{
+		build_inputs(x_value, y_value);
+	}
+
+	void swap_wire(const string& lhs, const string& rhs)
+	{
+		swap(deps_.at(lhs), deps_.at(rhs));
+	}
+
+	bool eval_z(unsigned long x_value, unsigned long y_value)
+	{
+		build_inputs(x_value, y_value);
+
+		bool overflow = false;
+		for ( auto bit = 0UL; bit != MAX_BITS + 1; ++bit ) {
+			static const int MAX_RECURSION_DEPTH = 99;
+			eval(make_wire('z', bit), MAX_RECURSION_DEPTH, overflow);
+		}
+		return !overflow;
+	}
+
+	[[nodiscard]] vector<string> test(unsigned long x_value, unsigned long y_value) const
+	{
+		const auto z_value = x_value + y_value;
+
+		vector<string> failed_bits;
+		auto           bit = 0UL;
+		for ( ; bit != MAX_BITS + 1; ++bit ) {
+			const auto z_bit = (z_value & (1UL << bit)) != 0 ? 1UL : 0UL;
+			const auto wire  = make_wire('z', bit);
+			if ( inputs_.at(wire) != z_bit ) {
+				failed_bits.push_back(wire);
+			}
+		}
+		return failed_bits;
+	};
+
+	void print(unsigned long x_value, unsigned long y_value, ostream& out) const
+	{
+		const auto z_value = x_value + y_value;
+
+		out << "  x:  " << bitset<MAX_BITS>{ x_value } << '\n'
+		    << "+ y:  " << bitset<MAX_BITS>{ y_value } << '\n'
+		    << "= z: " << bitset<MAX_BITS + 1>{ z_value } << '\n';
+
+		out << "===: ";
+		for ( auto bit = MAX_BITS + 1; bit-- > 0; ) {
+			const auto wire = make_wire('z', bit);
+			if ( inputs_.contains(wire) ) {
+				out << inputs_.at(wire);
+			}
+			else {
+				out << '_';
+			}
+		}
+		out << endl;
+	};
+
+	void collect(const string& input, set<string>& possible_fails) const
+	{
+		collect(input, 2, possible_fails);
+	}
+
+private:
+	void build_inputs(unsigned long x_value, unsigned long y_value)
+	{
+		inputs_.clear();
+
+		for ( auto bit = 0UL; bit != MAX_BITS; ++bit ) {
+			inputs_.emplace(make_wire('x', bit), (x_value & (1UL << bit)) != 0 ? 1 : 0);
+			inputs_.emplace(make_wire('y', bit), (y_value & (1UL << bit)) != 0 ? 1 : 0);
+		}
+	}
+
+	unsigned long eval(const string& input, size_t depth, bool& overflow)
+	{
+		if ( depth == 0 ) {
+			overflow = true;
+			return 0;
+		}
+
+		if ( inputs_.contains(input) ) {
+			return inputs_.at(input);
+		}
+
+		const auto& [lhs, op, rhs] = deps_.at(input);
+
+		unsigned long value = 0;
+
+		if ( op == "XOR" ) {
+			value = eval(lhs, depth - 1, overflow) ^ eval(rhs, depth - 1, overflow);
+		}
+		else if ( op == "AND" ) {
+			value = eval(lhs, depth - 1, overflow) & eval(rhs, depth - 1, overflow);
+		}
+		else if ( op == "OR" ) {
+			value = eval(lhs, depth - 1, overflow) | eval(rhs, depth - 1, overflow);
+		}
+
+		inputs_[input] = value;
+
+		return value;
+	}
+
+	void collect(const string& input, size_t depth, set<string>& possible_fails) const
+	{
+		if ( !deps_.contains(input) ) {
+			return;
+		}
+
+		possible_fails.insert(input);
+
+		if ( depth == 0 ) {
+			return;
+		}
+
+		const auto& [lhs, op, rhs] = deps_.at(input);
+
+		collect(lhs, depth - 1, possible_fails);
+		collect(rhs, depth - 1, possible_fails);
+	};
+
+	map<string, unsigned long> inputs_;
+
+	// register => { reg1 operator reg2 }
+	map<string, tuple<string, string, string>> deps_;
+};
+
+void
+part2(const tuple<map<string, unsigned long>, map<string, tuple<string, string, string>>>& data)
+{
+	RippleCarryAdder rca(data);
+
+	set<string> solution;
+
+	for ( auto bit = 0UL; bit != MAX_BITS; ++bit ) {
+		const auto x_value = 1UL << bit; // (1UL << (bit+1)) - 1;
+		const auto y_value = 0UL << bit;
+
+		if ( !rca.eval_z(x_value, y_value) ) {
+			return;
+		}
+
+		const auto failed_bits = rca.test(x_value, y_value);
+		if ( !failed_bits.empty() ) {
+			set<string> candidates;
+			for ( const auto& wire: failed_bits ) {
+				rca.collect(wire, candidates);
+			}
+
+			const vector<string> foo{ candidates.begin(), candidates.end() };
+
+			for ( auto i = foo.begin(); i != foo.end(); ++i ) {
+				for ( auto j = i + 1; j != foo.end(); ++j ) {
+					auto do_test = [&](unsigned long lhs, unsigned long rhs) -> bool {
+						RippleCarryAdder rca_tester{ data };
+
+						rca_tester.swap_wire(*i, *j);
+
+						if ( !rca_tester.eval_z(lhs, rhs) ) {
+							return false;
+						}
+						return rca_tester.test(lhs, rhs).empty();
+					};
+
+					if ( do_test(x_value, y_value) ) {
+						const auto x_value2 = 7UL << (bit - 1);
+						const auto y_value2 = 3UL << (bit - 1);
+
+						if ( do_test(x_value2, y_value2) ) {
+							const auto x_value3 = 1UL << bit;
+							const auto y_value3 = 1UL << bit;
+
+							if ( do_test(x_value3, y_value3) ) {
+								const auto x_value4 = 5UL << (bit - 1);
+								const auto y_value4 = 3UL << (bit - 1);
+
+								if ( do_test(x_value4, y_value4) ) {
+									solution.insert(*i);
+									solution.insert(*j);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	cout << join(solution, ",") << endl;
+}
+
 int
 main()
 {
 	const auto data = read_file("data/day24.txt");
 	part1(data);
+	part2(data);
 }
