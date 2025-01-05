@@ -17,8 +17,8 @@ auto& debug = cerr;
 struct NullBuffer : streambuf {
 	int overflow(int chr) override { return chr; }
 };
-NullBuffer nullBuffer;
-ostream    debug{ &nullBuffer };
+NullBuffer nullBuffer;           // NOLINT
+ostream    debug{ &nullBuffer }; // NOLINT
 #endif
 
 using Mana      = int;
@@ -121,6 +121,7 @@ public:
 	}
 
 	Mana      mana_;
+	Mana      mana_bought_{};
 	HitPoints hit_points_;
 	Armor     armor_{};
 };
@@ -133,6 +134,7 @@ public:
 	{
 		debug << "Player casts " << spell->name_ << endl;
 		player.SubMana(spell->mana_);
+		player.mana_bought_ += spell->mana_;
 
 		if ( spell->Timer() == 0 ) {
 			spell->Play(player, boos);
@@ -142,7 +144,7 @@ public:
 		}
 	}
 
-	bool TryAddRandomSpell(Player& player, Boss& boss)
+	[[nodiscard]] bool TryAddRandomSpell(Player& player, Boss& boss)
 	{
 		while ( true ) {
 			auto randomSpell = chooseRandomSpell(player);
@@ -156,6 +158,8 @@ public:
 			}
 
 			AddSpell(randomSpell, player, boss);
+
+			return true;
 		}
 	}
 
@@ -553,8 +557,80 @@ battle2()
 	cout << "End of Battle" << endl;
 }
 
+enum RoundState {
+	Player_Lost,
+	Boss_Lost,
+	Undecided
+};
+
+RoundState
+battle_round(Player& player, Boss& boss, Spells& spells)
+{
+	debug << "\n-- Player turn --\n"
+	      << player << '\n'
+	      << boss << endl;
+
+	spells.Play(player, boss);
+	if ( player.HasLost() ) {
+		return Player_Lost;
+	}
+	if ( boss.HasLost() ) {
+		return Boss_Lost;
+	}
+	if ( !spells.TryAddRandomSpell(player, boss) ) {
+		return Player_Lost;
+	}
+
+	// ----------------------
+
+	debug << "\n-- Boss turn --\n"
+	      << player << '\n'
+	      << boss << endl;
+
+	spells.Play(player, boss);
+	if ( player.HasLost() ) {
+		return Player_Lost;
+	}
+	if ( boss.HasLost() ) {
+		return Boss_Lost;
+	}
+	boss.Play(player);
+	if ( player.HasLost() ) {
+		return Player_Lost;
+	}
+	return Undecided;
+}
+
+void
+part1()
+{
+	const Boss boss_master("data/day22.txt");
+
+	static const Mana      start_mana      = 500;
+	static const HitPoints start_hitpoints = 50;
+
+	auto min_mana{ 999999 };
+
+	for ( int i = 0; i != 500000; ++i ) {
+		Boss   boss{ boss_master };
+		Player player(start_mana, start_hitpoints);
+		Spells spells;
+
+		auto roundState = battle_round(player, boss, spells);
+		while ( roundState == Undecided ) {
+			roundState = battle_round(player, boss, spells);
+		}
+
+		if ( roundState == Boss_Lost ) {
+			min_mana = min(min_mana, player.mana_bought_);
+		}
+	}
+	cout << min_mana << endl;
+}
+
 int
 main()
 {
-	battle2();
+	srand((unsigned int) time(NULL));
+	part1();
 }
