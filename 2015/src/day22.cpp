@@ -564,11 +564,15 @@ enum RoundState {
 };
 
 RoundState
-battle_round(Player& player, Boss& boss, Spells& spells)
+battle_round(Player& player, Boss& boss, Spells& spells, bool hard_mode)
 {
 	debug << "\n-- Player turn --\n"
 	      << player << '\n'
 	      << boss << endl;
+
+	if ( hard_mode ) {
+		player.SubHitPoints(1);
+	}
 
 	spells.Play(player, boss);
 	if ( player.HasLost() ) {
@@ -602,23 +606,23 @@ battle_round(Player& player, Boss& boss, Spells& spells)
 }
 
 void
-part1()
+play(bool hard_mode = false)
 {
 	const Boss boss_master("data/day22.txt");
 
 	static const Mana      start_mana      = 500;
 	static const HitPoints start_hitpoints = 50;
 
-	auto min_mana{ 999999 };
+	auto min_mana{ 999999999 };
 
-	for ( int i = 0; i != 500000; ++i ) {
+	for ( int i = 0; i != 1000000; ++i ) {
 		Boss   boss{ boss_master };
 		Player player(start_mana, start_hitpoints);
 		Spells spells;
 
-		auto roundState = battle_round(player, boss, spells);
+		auto roundState = battle_round(player, boss, spells, hard_mode);
 		while ( roundState == Undecided ) {
-			roundState = battle_round(player, boss, spells);
+			roundState = battle_round(player, boss, spells, hard_mode);
 		}
 
 		if ( roundState == Boss_Lost ) {
@@ -628,9 +632,22 @@ part1()
 	cout << min_mana << endl;
 }
 
+void
+part1()
+{
+	play();
+}
+
+void
+part2()
+{
+	play(true);
+}
+
 int
 main()
 {
 	srand((unsigned int) time(NULL));
 	part1();
+	part2();
 }
