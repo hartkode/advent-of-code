@@ -36,8 +36,10 @@ solve(const vector<string>& lines)
 			++counts[line[col]];
 		}
 
-		part1 += max_element(counts.begin(), counts.end(), [](auto lhs, auto rhs) { return lhs.second < rhs.second; })->first;
-		part2 += min_element(counts.begin(), counts.end(), [](auto lhs, auto rhs) { return lhs.second < rhs.second; })->first;
+		const auto [min, max] = ranges::minmax_element(counts, [](auto lhs, auto rhs) { return lhs.second < rhs.second; });
+
+		part1 += max->first;
+		part2 += min->first;
 	}
 
 	cout << part1 << '\n'
