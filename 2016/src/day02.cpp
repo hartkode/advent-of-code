@@ -13,7 +13,6 @@ read_file(string_view filename)
 	fstream        input{ filename };
 	vector<string> lines;
 
-	vector<tuple<char, long>> result;
 	for ( string line; getline(input, line); ) {
 		lines.emplace_back(line);
 	}
