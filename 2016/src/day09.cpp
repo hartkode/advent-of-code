@@ -17,10 +17,7 @@ part1(string_view line)
 {
 	size_t len = 0;
 	for ( size_t i = 0; i != line.length(); ) {
-		size_t lhs = 0;
-		size_t rhs = 0;
-
-		if ( sscanf(&line[i], "(%zux%zu)", &lhs, &rhs) == 2 ) {
+		if ( size_t lhs = 0, rhs = 0; sscanf(&line[i], "(%zux%zu)", &lhs, &rhs) == 2 ) {
 			i = line.find(')', i) + 1 + lhs;
 			len += lhs * rhs;
 		}
@@ -38,10 +35,7 @@ part2(string_view line)
 	function<size_t(string_view)> part2_rec = [&](string_view line) {
 		size_t len = 0;
 		for ( size_t i = 0; i != line.length(); ) {
-			size_t lhs = 0;
-			size_t rhs = 0;
-
-			if ( sscanf(&line[i], "(%zux%zu)", &lhs, &rhs) == 2 ) {
+			if ( size_t lhs = 0, rhs = 0; sscanf(&line[i], "(%zux%zu)", &lhs, &rhs) == 2 ) {
 				i = line.find(')', i) + 1;
 				len += part2_rec({ &line[i], lhs }) * rhs;
 				i += lhs;
