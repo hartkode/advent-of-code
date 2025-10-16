@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -8,6 +9,8 @@
 using namespace std;
 
 using Sink = tuple<string, int>;
+
+namespace {
 
 vector<string>
 split(const string& line, char sep)
@@ -23,7 +26,7 @@ split(const string& line, char sep)
 }
 
 map<int, tuple<Sink, Sink, vector<int>>>
-read_file(string_view filename)
+read_file(const filesystem::path& filename)
 {
 	fstream input{ filename };
 
@@ -84,15 +87,17 @@ solve(map<int, tuple<Sink, Sink, vector<int>>> bots)
 
 		// part1
 		if ( chips.at(0) == 17 && chips.at(1) == 61 ) {
-			cout << id << endl;
+			cout << id << '\n';
 		}
 
 		chips.clear();
 	}
 
 	// part2
-	cout << outputs[0] * outputs[1] * outputs[2] << endl;
+	cout << outputs[0] * outputs[1] * outputs[2] << '\n';
 }
+
+} // namespace
 
 int
 main()

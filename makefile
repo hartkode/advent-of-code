@@ -37,14 +37,14 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 	c++ $(CPPFLAGS) $^ -o $@
 
 2023/bin/day24: 2023/src/day24.cpp | 2023/bin
-	c++ $(CPPFLAGS) -Wno-sign-conversion -I/usr/local/include $^ -L/usr/local/lib -lz3 -o $@
+	c++ $(CPPFLAGS) -Wno-sign-conversion $^ -lz3 -o $@
 
 # 2024
 2024/bin/%: 2024/src/%.cpp | 2024/bin
 	c++ $(CPPFLAGS) $^ -o $@
 
 2024/bin/day13-z3: 2024/src/day13-z3.cpp | 2024/bin
-	c++ $(CPPFLAGS) $^ -L/usr/local/lib -lz3 -o $@
+	c++ $(CPPFLAGS) $^ -lz3 -o $@
 
 clean:
 	rm -rf 2015/bin 2016/bin 2020/bin 2022/bin 2023/bin 2024/bin
