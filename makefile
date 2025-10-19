@@ -24,6 +24,9 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 2016/bin/day14: 2016/src/day14.cpp | 2016/bin
 	c++ $(CPPFLAGS) $^ -lmd -o $@
 
+2016/bin/day17: 2016/src/day17.cpp | 2016/bin
+	c++ $(CPPFLAGS) $^ -lmd -o $@
+
 2016/bin/day05: 2016/src/day05.cpp | 2016/bin
 	c++ $(CPPFLAGS) $^ -lmd -o $@
 
