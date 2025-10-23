@@ -17,7 +17,7 @@ split(const string& line, const regex& sep)
 }
 
 vector<tuple<vector<string>, long, string>>
-read_file(string_view filename)
+read_file(const string& filename)
 {
 	fstream input{ filename };
 

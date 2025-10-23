@@ -11,7 +11,7 @@
 using namespace std;
 
 vector<string>
-read_file(string_view filename)
+read_file(const string& filename)
 {
 	fstream input{ filename };
 

@@ -30,7 +30,7 @@ split(string_view line, string_view delimiter)
 }
 
 vector<tuple<char, long>>
-read_file(string_view filename)
+read_file(const string& filename)
 {
 	fstream input{ filename };
 	string  content{ istreambuf_iterator<char>{ input }, istreambuf_iterator<char>{} };

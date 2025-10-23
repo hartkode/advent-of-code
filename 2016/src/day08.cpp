@@ -8,7 +8,7 @@
 using namespace std;
 
 vector<tuple<char, size_t, size_t>>
-read_file(string_view filename)
+read_file(const string& filename)
 {
 	fstream input{ filename };
 

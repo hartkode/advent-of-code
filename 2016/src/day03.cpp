@@ -8,7 +8,7 @@
 using namespace std;
 
 vector<array<long, 3>>
-read_file(string_view filename)
+read_file(const string& filename)
 {
 	fstream                input{ filename };
 	vector<array<long, 3>> result;
