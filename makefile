@@ -6,7 +6,8 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 	$(patsubst 2020/src/%.cpp,2020/bin/%,$(wildcard 2020/src/*.cpp)) \
 	$(patsubst 2022/src/%.cpp,2022/bin/%,$(wildcard 2022/src/*.cpp)) \
 	$(patsubst 2023/src/%.cpp,2023/bin/%,$(wildcard 2023/src/*.cpp)) \
-	$(patsubst 2024/src/%.cpp,2024/bin/%,$(wildcard 2024/src/*.cpp))
+	$(patsubst 2024/src/%.cpp,2024/bin/%,$(wildcard 2024/src/*.cpp)) \
+	$(patsubst 2025/src/%.cpp,2025/bin/%,$(wildcard 2025/src/*.cpp))
 
 %/bin:
 	mkdir -p $@
@@ -57,7 +58,11 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 2024/bin/day13-z3: 2024/src/day13-z3.cpp | 2024/bin
 	c++ $(CPPFLAGS) $^ -lz3 -o $@
 
+# 2025
+2025/bin/%: 2025/src/%.cpp | 2025/bin
+	c++ $(CPPFLAGS) $^ -o $@
+
 clean:
-	rm -rf 2015/bin 2016/bin 2017/bin 2020/bin 2022/bin 2023/bin 2024/bin
+	rm -rf 2015/bin 2016/bin 2017/bin 2020/bin 2022/bin 2023/bin 2024/bin 2025/bin
 
 .PHONY: all clean
