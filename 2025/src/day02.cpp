@@ -1,7 +1,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <ranges>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -77,6 +77,18 @@ part1(const vector<tuple<long, long>>& ranges)
 }
 
 void
+part1_regex(const vector<tuple<long, long>>& ranges)
+{
+	const regex regex{ R"(^(\d+)\1$)" };
+
+	auto is_invalid = [&](long num) {
+		return regex_search(to_string(num), regex);
+	};
+
+	cout << "Part 1 (regex): " << accumulate_invalids(ranges, is_invalid) << '\n';
+}
+
+void
 part2(const vector<tuple<long, long>>& ranges)
 {
 	auto is_invalid = [](long num) {
@@ -104,12 +116,40 @@ part2(const vector<tuple<long, long>>& ranges)
 	cout << "Part 2: " << accumulate_invalids(ranges, is_invalid) << '\n';
 }
 
+void
+part2_regex(const vector<tuple<long, long>>& ranges)
+{
+	const regex regex{ R"(^(\d+)\1+$)" };
+
+	auto is_invalid = [&](long num) {
+		return regex_search(to_string(num), regex);
+	};
+
+	cout << "Part 2 (regex): " << accumulate_invalids(ranges, is_invalid) << '\n';
+}
+
+void
+part2_kmp(const vector<tuple<long, long>>& ranges)
+{
+	auto is_invalid = [](long num) {
+		const auto str = to_string(num);
+		return (str + str).find(str, 1) < str.size();
+	};
+
+	cout << "Part 2 (kmp): " << accumulate_invalids(ranges, is_invalid) << '\n';
+}
+
 } // namespace
 
 int
 main()
 {
 	auto ranges = read_file("data/day02.txt");
+
 	part1(ranges);
+	part1_regex(ranges);
+
 	part2(ranges);
+	part2_regex(ranges);
+	part2_kmp(ranges);
 }
