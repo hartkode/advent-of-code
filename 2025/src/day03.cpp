@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <vector>
 
 using namespace std;
@@ -28,16 +29,39 @@ read_file(const filesystem::path& filename)
 	return lines;
 }
 
+long
+solve(const vector<long>& line, int n)
+{
+	long value = 0;
+	auto start = line.begin();
+	auto end   = prev(line.end(), n);
+
+	while ( n-- > 0 ) {
+		start = max_element(start, end++);
+
+		value *= 10;
+		value += *start++;
+	}
+	return value;
+}
+
+long
+solve(const vector<vector<long>>& lines, int n)
+{
+	return accumulate(lines.begin(), lines.end(), 0L,
+	                  [&](auto sum, const auto& line) { return sum + solve(line, n); });
+}
+
 void
 part1(const vector<vector<long>>& lines)
 {
-	long sum = 0;
-	for ( const auto& line: lines ) {
-		auto first  = max_element(line.begin(), prev(line.end()));
-		auto second = max_element(next(first), line.end());
-		sum += *first * 10 + *second;
-	}
-	cout << "Part 1: " << sum << '\n';
+	cout << "Part 1: " << solve(lines, 2) << '\n';
+}
+
+void
+part2(const vector<vector<long>>& lines)
+{
+	cout << "Part 2: " << solve(lines, 12) << '\n';
 }
 
 } // namespace
@@ -47,4 +71,5 @@ main()
 {
 	auto lines = read_file("data/day03.txt");
 	part1(lines);
+	part2(lines);
 }
