@@ -34,10 +34,9 @@ solve(const vector<long>& line, int n)
 {
 	long value = 0;
 	auto start = line.begin();
-	auto end   = prev(line.end(), n);
 
 	while ( n-- > 0 ) {
-		start = max_element(start, end++);
+		start = max_element(start, prev(line.end(), n));
 
 		value *= 10;
 		value += *start++;
@@ -48,7 +47,8 @@ solve(const vector<long>& line, int n)
 long
 solve(const vector<vector<long>>& lines, int n)
 {
-	return accumulate(lines.begin(), lines.end(), 0L,
+	return accumulate(lines.begin(), lines.end(),
+	                  0L,
 	                  [&](auto sum, const auto& line) { return sum + solve(line, n); });
 }
 
