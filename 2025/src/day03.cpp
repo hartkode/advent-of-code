@@ -34,9 +34,10 @@ solve(const vector<long>& line, int n)
 {
 	long value = 0;
 	auto start = line.begin();
+	auto end   = prev(line.end(), n);
 
 	while ( n-- > 0 ) {
-		start = max_element(start, prev(line.end(), n));
+		start = max_element(start, ++end);
 
 		value *= 10;
 		value += *start++;
