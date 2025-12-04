@@ -1,6 +1,9 @@
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <queue>
 #include <set>
 #include <string>
 #include <tuple>
@@ -30,7 +33,7 @@ read_file(const filesystem::path& filename)
 	return grid;
 }
 
-set<Pos>
+array<Pos, 8>
 get_neighbours(const Pos& pos)
 {
 	auto [col, row] = pos;
@@ -47,40 +50,35 @@ get_neighbours(const Pos& pos)
 	};
 }
 
+size_t
+get_nneighbours(const set<Pos>& grid, const Pos& pos)
+{
+	return (size_t) ranges::count_if(get_neighbours(pos), [&](const auto& neighbour) { return grid.contains(neighbour); });
+}
+
 bool
 is_accessable(const set<Pos>& grid, const Pos& pos)
 {
-	long nneighbours = 0;
-	for ( const auto neighbour: get_neighbours(pos) ) {
-		if ( grid.contains(neighbour) ) {
-			++nneighbours;
-		}
-	}
-	return nneighbours < 4;
+	return get_nneighbours(grid, pos) < 4;
 }
 
 void
 part1(const set<Pos>& grid)
 {
-	long count = 0;
-	for ( const auto pos: grid ) {
-		if ( is_accessable(grid, pos) ) {
-			++count;
-		}
-	}
+	auto count = ranges::count_if(grid, [&](const auto& pos) { return is_accessable(grid, pos); });
 	cout << "Part 1: " << count << '\n';
 }
 
 void
 part2(set<Pos> grid)
 {
-	auto old_size = grid.size();
+	const auto old_size = grid.size();
 	while ( true ) {
-		set<Pos> remove;
+		vector<Pos> remove;
 
 		for ( const auto& pos: grid ) {
 			if ( is_accessable(grid, pos) ) {
-				remove.insert(pos);
+				remove.emplace_back(pos);
 			}
 		}
 
@@ -92,6 +90,7 @@ part2(set<Pos> grid)
 			grid.erase(pos);
 		}
 	}
+
 	cout << "Part 2: " << old_size - grid.size() << '\n';
 }
 
