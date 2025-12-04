@@ -94,6 +94,46 @@ part2(set<Pos> grid)
 	cout << "Part 2: " << old_size - grid.size() << '\n';
 }
 
+void
+part2_bfs(set<Pos> grid)
+{
+	const auto old_size = grid.size();
+
+	map<Pos, size_t> counts;
+	for ( const auto& pos: grid ) {
+		counts[pos] = get_nneighbours(grid, pos);
+	}
+
+	queue<Pos> queue;
+	for ( const auto& [pos, count]: counts ) {
+		if ( count < 4 ) {
+			queue.emplace(pos);
+		}
+	}
+
+	while ( !queue.empty() ) {
+		const auto pos = queue.front();
+		queue.pop();
+
+		if ( !grid.contains(pos) ) {
+			continue;
+		}
+
+		grid.erase(pos);
+
+		for ( const auto& neighbour: get_neighbours(pos) ) {
+			if ( !grid.contains(neighbour) ) {
+				continue;
+			}
+			if ( --counts[neighbour] == 3 ) {
+				queue.emplace(neighbour);
+			}
+		}
+	}
+
+	cout << "Part 2: " << old_size - grid.size() << '\n';
+}
+
 } // namespace
 
 int
@@ -102,4 +142,5 @@ main()
 	auto grid = read_file("data/day04.txt");
 	part1(grid);
 	part2(grid);
+	part2_bfs(grid);
 }
