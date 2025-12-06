@@ -1,9 +1,9 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <string>
-#include <tuple>
 #include <vector>
 
 using namespace std;
@@ -26,93 +26,100 @@ read_file(const filesystem::path& filename)
 	return lines;
 }
 
-vector<char>
+Ops
 read_ops(const string& line)
 {
 	stringstream strm{ line };
-	vector<char> ops;
+	Ops          ops;
 	for ( char chr{}; strm >> chr; ) {
 		ops.emplace_back(chr);
 	}
 	return ops;
 }
 
-vector<long>
-read_numbers(const string& line)
+Ops
+extract_ops(vector<string>& lines)
 {
-	stringstream strm{ line };
-	vector<long> numbers;
-	for ( long number{}; strm >> number; ) {
-		numbers.emplace_back(number);
+	auto ops = read_ops(lines.back());
+	ranges::reverse(ops);
+	lines.pop_back();
+
+	return ops;
+}
+
+template<typename Matrix>
+Matrix
+rotateLeft90(const Matrix& matrix)
+{
+	using Row = typename Matrix::value_type;
+	using T   = typename Row::value_type;
+
+	if ( matrix.empty() ) {
+		return Matrix{};
 	}
-	return numbers;
+
+	const size_t rows = matrix.size();
+	const size_t cols = matrix[0].size();
+
+	Matrix result(cols, Row(rows, T{}));
+
+	for ( size_t row = 0; row != rows; ++row ) {
+		for ( size_t col = 0; col != cols; ++col ) {
+			result[cols - 1 - col][row] = matrix[row][col];
+		}
+	}
+	return result;
+}
+
+long
+calculate(const Grid& grid, const Ops& ops)
+{
+	long sum = 0;
+	for ( size_t row = 0; row != ops.size(); ++row ) {
+		const auto& line = grid[row];
+		if ( ops[row] == '*' ) {
+			sum += accumulate(line.begin(), line.end(), 1L, multiplies<>());
+		}
+		else {
+			sum += accumulate(line.begin(), line.end(), 0L);
+		}
+	}
+	return sum;
 }
 
 void
 part1(vector<string> lines)
 {
-	ranges::reverse(lines);
+	const auto ops = extract_ops(lines);
 
-	const auto ops = read_ops(lines[0]);
-
-	vector<vector<long>> grid;
-	for ( size_t i = 1; i < lines.size(); ++i ) {
-		grid.emplace_back(read_numbers(lines[i]));
-	}
-
-	long sum = 0;
-	for ( size_t col = 0; col != ops.size(); ++col ) {
-		long value = ops[col] == '*' ? 1 : 0;
-		for ( auto& row: grid ) {
-			if ( ops[col] == '*' ) {
-				value *= row[col];
-			}
-			else {
-				value += row[col];
-			}
+	Grid grid;
+	grid.reserve(lines.size());
+	for ( const auto& line: lines ) {
+		stringstream strm{ line };
+		vector<long> numbers;
+		for ( long number{}; strm >> number; ) {
+			numbers.emplace_back(number);
 		}
-		sum += value;
-	}
-	cout << "Part 1: " << sum << '\n';
-}
 
-vector<string>
-rotateLeft90(const vector<string>& matrix)
-{
-	if ( matrix.empty() ) {
-		return {};
+		grid.emplace_back(numbers);
 	}
 
-	auto rows = matrix.size();
-	auto cols = matrix[0].size();
+	grid = rotateLeft90(grid);
 
-	vector<string> res(cols, string(rows, ' '));
-
-	for ( size_t row = 0; row != rows; ++row ) {
-		for ( size_t col = 0; col != cols; ++col ) {
-			// Position aus ursprünglicher Matrix auf neue übertragen
-			res[cols - 1 - col][row] = matrix[row][col];
-		}
-	}
-
-	return res;
+	cout << "Part 1: " << calculate(grid, ops) << '\n';
 }
 
 void
 part2(vector<string> lines)
 {
-	auto ops = read_ops(lines.back());
-	ranges::reverse(ops);
-	lines.pop_back(); // ops entfernen
+	const auto ops = extract_ops(lines);
 
-	// Matrix drehen
 	lines = rotateLeft90(lines);
 	lines.emplace_back("");
 
-	vector<vector<long>> grid;
-	vector<long>         curr;
+	Grid         grid;
+	vector<long> curr;
 
-	// Matrix neu aufbauen
 	for ( const auto& line: lines ) {
 		if ( long number{}; sscanf(line.data(), "%ld", &number) == 1 ) {
 			curr.emplace_back(number);
@@ -123,21 +130,7 @@ part2(vector<string> lines)
 		}
 	}
 
-	// ausrechnen
-	long sum = 0;
-	for ( size_t row = 0; row != ops.size(); ++row ) {
-		long value = ops[row] == '*' ? 1 : 0;
-		for ( const auto number: grid[row] ) {
-			if ( ops[row] == '*' ) {
-				value *= number;
-			}
-			else {
-				value += number;
-			}
-		}
-		sum += value;
-	}
-	cout << "Part 2: " << sum << '\n';
+	cout << "Part 2: " << calculate(grid, ops) << '\n';
 }
 
 } // namespace
