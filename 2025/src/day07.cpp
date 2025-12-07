@@ -14,21 +14,14 @@ namespace {
 vector<string>
 read_file(const filesystem::path& filename)
 {
-	ifstream       file{ filename };
-	vector<string> grid;
-
-	for ( string line; getline(file, line); ) {
-		grid.emplace_back(line);
-	}
-
-	return grid;
+	ifstream file{ filename };
+	return { istream_iterator<string>{ file }, {} };
 }
 
 void
 part1(const vector<string>& grid)
 {
-	set<size_t> curr;
-	curr.insert(grid[0].find('S'));
+	set<size_t> curr{ grid[0].find('S') };
 
 	int count = 0;
 	for ( size_t i = 1; i < grid.size(); ++i ) {
@@ -36,11 +29,10 @@ part1(const vector<string>& grid)
 
 		auto next = curr;
 
-		for ( const auto pos: curr ) {
-			if ( row[pos] == '^' ) {
-				next.erase(pos);
-				next.insert(pos - 1);
-				next.insert(pos + 1);
+		for ( const auto col: curr ) {
+			if ( row[col] == '^' ) {
+				next.erase(col);
+				next.insert({ col - 1, col + 1 });
 				++count;
 			}
 		}
@@ -55,7 +47,8 @@ part2(const vector<string>& grid)
 {
 	using Pos = tuple<size_t, size_t>;
 
-	map<Pos, long>             cache;
+	map<Pos, long> cache;
+
 	function<long(const Pos&)> walk = [&](const Pos& pos) {
 		if ( cache.contains(pos) ) {
 			return cache.at(pos);
@@ -77,8 +70,7 @@ part2(const vector<string>& grid)
 		return (cache[pos] = walk({ col, row + 1 }));
 	};
 
-	const auto col = grid[0].find('S');
-	cout << "Part 2: " << walk(Pos{ col, 0 }) << '\n';
+	cout << "Part 2: " << walk(Pos{ grid[0].find('S'), 0 }) << '\n';
 }
 
 } // namespace
