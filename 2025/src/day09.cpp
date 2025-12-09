@@ -64,31 +64,14 @@ intersects(const Segment& line, const tuple<long, long, long, long>& rect)
 	const auto [x1, y1]     = start;
 	const auto [x2, y2]     = end;
 
+	const auto min_x = min(x1, x2);
+	const auto max_x = max(x1, x2);
+	const auto min_y = min(y1, y2);
+	const auto max_y = max(y1, y2);
+
 	const auto [left, top, right, bottom] = rect;
 
-	if ( x1 == x2 ) {
-		if ( x1 <= left || x1 >= right ) {
-			return false;
-		}
-
-		const auto min_y = min(y1, y2);
-		const auto max_y = max(y1, y2);
-
-		return max_y > top && min_y < bottom;
-	}
-
-	if ( y1 == y2 ) {
-		if ( y1 <= top || y1 >= bottom ) {
-			return false;
-		}
-
-		auto min_x = min(x1, x2);
-		auto max_x = max(x1, x2);
-
-		return max_x > left && min_x < right;
-	}
-
-	return false;
+	return max_x > left && min_x < right && max_y > top && min_y < bottom;
 }
 
 bool
