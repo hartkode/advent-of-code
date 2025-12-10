@@ -62,6 +62,9 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 2025/bin/%: 2025/src/%.cpp | 2025/bin
 	c++ $(CPPFLAGS) $^ -o $@
 
+2025/bin/day10p2: 2025/src/day10p2.cpp | 2025/bin
+	c++ $(CPPFLAGS) -Wno-sign-conversion $^ -lz3 -o $@
+
 clean:
 	rm -rf 2015/bin 2016/bin 2017/bin 2020/bin 2022/bin 2023/bin 2024/bin 2025/bin
 
