@@ -99,6 +99,39 @@ part2(const Graph& graph)
 	cout << "Part 2: " << dfs("svr", false, false) << '\n';
 }
 
+void
+part2_alt(const Graph& graph)
+{
+	map<tuple<string, string>, long> cache;
+
+	function<long(const string&, const string&)> dfs = [&](const string& src, const string& dst) {
+		if ( src == dst ) {
+			return 1L;
+		}
+
+		const auto args = make_tuple(src, dst);
+
+		if ( cache.contains(args) ) {
+			return cache.at(args);
+		}
+
+		long count = 0;
+		if ( graph.contains(src) ) {
+			for ( const auto& node: graph.at(src) ) {
+				count += dfs(node, dst);
+			}
+		}
+		return cache[args] = count;
+	};
+
+	// clang-format off
+	const auto total = (dfs("svr", "dac") * dfs("dac", "fft") * dfs("fft", "out"))
+	                 + (dfs("svr", "fft") * dfs("fft", "dac") * dfs("dac", "out"));
+	// clang-format on
+
+	cout << "Part 2 (alternative): " << total << '\n';
+}
+
 } // namespace
 
 int
@@ -107,4 +140,5 @@ main()
 	auto graph = read_file("data/day11.txt");
 	part1(graph);
 	part2(graph);
+	part2_alt(graph);
 }
