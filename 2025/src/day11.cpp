@@ -64,15 +64,39 @@ part1(const Graph& graph)
 		}
 
 		long count = 0;
-
 		for ( const auto& node: graph.at(src) ) {
 			count += dfs(node);
 		}
-
 		return cache[src] = count;
 	};
 
 	cout << "Part 1: " << dfs("you") << '\n';
+}
+
+void
+part2(const Graph& graph)
+{
+	map<tuple<string, bool, bool>, long> cache;
+
+	function<long(const string&, bool, bool)> dfs = [&](const string& src, bool dac_visited, bool fft_visited) {
+		if ( src == "out" ) {
+			return (dac_visited && fft_visited) ? 1L : 0L;
+		}
+
+		const auto args = make_tuple(src, dac_visited, fft_visited);
+
+		if ( cache.contains(args) ) {
+			return cache.at(args);
+		}
+
+		long count = 0;
+		for ( const auto& node: graph.at(src) ) {
+			count += dfs(node, dac_visited || node == "dac", fft_visited || node == "fft");
+		}
+		return cache[args] = count;
+	};
+
+	cout << "Part 2: " << dfs("svr", false, false) << '\n';
 }
 
 } // namespace
@@ -82,4 +106,5 @@ main()
 {
 	auto graph = read_file("data/day11.txt");
 	part1(graph);
+	part2(graph);
 }
