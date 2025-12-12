@@ -62,6 +62,9 @@ all: $(patsubst 2015/src/%.cpp,2015/bin/%,$(wildcard 2015/src/*.cpp)) \
 2025/bin/%: 2025/src/%.cpp | 2025/bin
 	c++ $(CPPFLAGS) $^ -o $@
 
+2025/bin/day09-geos: 2025/src/day09-geos.cpp | 2025/bin
+	c++ $(CPPFLAGS) -Wno-sign-conversion "-Wno-#warnings" $^ -lgeos -o $@
+
 2025/bin/day10p2: 2025/src/day10p2.cpp | 2025/bin
 	c++ $(CPPFLAGS) -Wno-sign-conversion $^ -lz3 -o $@
 
